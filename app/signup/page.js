@@ -19,8 +19,9 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogFooter,
 } from "@/components/ui/dialog"
+import { useRouter } from 'next/navigation'
 
 const signup = () => {
     const [inputs, setinputs] = useState({
@@ -30,6 +31,8 @@ const signup = () => {
     const [Truestate, setTruestate] = useState(false)
     const [opening, setopening] = useState(false)
     const [otpvalue, setotpvalue] = useState("")
+    const [userid, setuserid] = useState("")
+    const router=useRouter()
     const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
         .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
     const account = new Account(client);
@@ -59,17 +62,44 @@ const signup = () => {
         }
     }
     const handleclick = async () => {
-        setopening(true)
-        return
-        if (!isValidEmail(inputs.email)) return
-        if (inputs.name.trim() === "") return
+        if (isValidEmail(inputs.email)) {
+            if (document.querySelector(".shadow-changer").classList.contains("shadow-red-300")) {
+                document.querySelector(".shadow-changer").classList.remove("shadow-red-300")
+            }
+        }
+        else {
+            document.querySelector(".shadow-changer").classList.add("shadow-red-300")
+            return
+        }
+        if (inputs.name.trim() === "") {
+            document.querySelector(".name-valid").classList.add("shadow-red-300")
+            return
+        }
+        else {
+            if (document.querySelector(".name-valid").classList.contains("shadow-red-300")) {
+
+                document.querySelector(".name-valid").classList.remove("shadow-red-300")
+            }
+        }
         setTruestate(true)
         const sessionToken = await account.createEmailToken(
             ID.unique(),
             inputs.email
         );
-        console.log("email token sent");
-        // const userId = sessionToken.userId;
+        setopening(true)
+        const userId = sessionToken.userId;
+        setuserid(userId)
+    }
+    const handleverify= async()=>{
+        await account.createSession(
+            userid,
+            otpvalue
+        ).then(e=>{
+            setopening(false)
+            setTruestate(false)
+            router.push("/")
+        })
+
     }
     return (
         <div className='h-[100vh] flex overflow-y-hidden'>
@@ -110,13 +140,34 @@ const signup = () => {
                 <DialogContent >
                     <DialogHeader>
                         <DialogTitle>Verify Your Email Address</DialogTitle>
+
                     </DialogHeader>
+                    <DialogDescription></DialogDescription>
+                    <button onClick={() => setopening(false)} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={20}
+                            height={20}
+                            fill="none"
+                            className="injected-svg"
+                            color="black"
+                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="black"
+                                fillRule="evenodd"
+                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </button>
                     <div className='text-center'>Email sent to <span className='text-[#fa7275]'>{inputs.email}</span></div>
                     <div className='mx-auto'>
 
-                        <InputOTP maxLength={6} value={otpvalue} onChange={(value)=>{setotpvalue(value)}}>
+                        <InputOTP maxLength={6} value={otpvalue} onChange={(value) => { setotpvalue(value) }}>
                             <InputOTPGroup>
-                                <InputOTPSlot className="text-xl text-[#fa7275]" index={0} />
+                                <InputOTPSlot autoFocus={true} className="text-xl text-[#fa7275]" index={0} />
                                 <InputOTPSlot className="text-xl text-[#fa7275]" index={1} />
                                 <InputOTPSlot className="text-xl text-[#fa7275]" index={2} />
                             </InputOTPGroup>
@@ -127,8 +178,10 @@ const signup = () => {
                                 <InputOTPSlot className="text-xl text-[#fa7275]" index={5} />
                             </InputOTPGroup>
                         </InputOTP>
+                        <Button  onClick={handleverify} className="w-[95%]  bg-[#fa7275] text-base h-10 mt-8 rounded-full cursor-pointer hover:bg-[#ff686c]">Verify</Button>
                     </div>
 
+                    <DialogFooter className="text-center block my-3">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Resend</span></DialogFooter>
                 </DialogContent>
             </Dialog>
 
