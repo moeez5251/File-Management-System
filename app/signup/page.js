@@ -99,18 +99,16 @@ const signup = () => {
             return
         })
     }
-    const handleverify = async () => {
-        if (otpvalue.length < 5) {
+    const handleverify = async (e) => {
+        if (e.length < 6) {
             return
         }
-        console.log(otpvalue);
         await account.createSession(
             userid,
-            otpvalue
+            e
         ).then(e => {
             router.push("/")
         }).catch(e => {
-            console.log(e);
             toast("Invalid OTP")
             setTruestate(false)
             setverifystate(false)
@@ -160,7 +158,7 @@ const signup = () => {
 
                     </DialogHeader>
                     <DialogDescription></DialogDescription>
-                    <button onClick={() => setopening(false)} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                    <button onClick={() => { setopening(false); setTruestate(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width={20}
@@ -182,11 +180,11 @@ const signup = () => {
                     <div className='text-center'>Email sent to <span className='text-[#fa7275]'>{inputs.email}</span></div>
                     <div className='mx-auto'>
 
-                        <InputOTP maxLength={6} value={otpvalue} onChange={(value) => {
+                        <InputOTP maxLength={6} value={otpvalue} onChange={async (value) => {
                             setotpvalue(value)
                             if (value.length === 6) {
-                                handleverify()
                                 setverifystate(true)
+                                handleverify(value)
                             }
                         }}>
                             <InputOTPGroup>
@@ -207,7 +205,7 @@ const signup = () => {
                         }
                         {
                             verifystate &&
-                            <Button onClick={handleverify} className="w-[95%] btn-verify bg-[#fa7275] text-base h-10 mt-8 rounded-full cursor-pointer hover:bg-[#ff686c]">Verifying
+                            <Button disabled className="w-[95%]  pointer-events-none btn-verify bg-[#fa7275] text-base h-10 mt-8 rounded-full cursor-pointer hover:bg-[#ff686c]">Verifying
                                 <Loader2 className="animate-spin" />
                             </Button>
                         }
