@@ -22,6 +22,8 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog"
 import { useRouter } from 'next/navigation'
+import { toast } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
 
 const signup = () => {
     const [inputs, setinputs] = useState({
@@ -29,10 +31,11 @@ const signup = () => {
         email: ""
     })
     const [Truestate, setTruestate] = useState(false)
+    const [verifystate, setverifystate] = useState(false)
     const [opening, setopening] = useState(false)
     const [otpvalue, setotpvalue] = useState("")
     const [userid, setuserid] = useState("")
-    const router=useRouter()
+    const router = useRouter()
     const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
         .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
     const account = new Account(client);
@@ -82,27 +85,41 @@ const signup = () => {
             }
         }
         setTruestate(true)
-        const sessionToken = await account.createEmailToken(
+        await account.createEmailToken(
             ID.unique(),
             inputs.email
-        );
-        setopening(true)
-        const userId = sessionToken.userId;
-        setuserid(userId)
+        ).then(e => {
+            setopening(true)
+            const userId = e.userId;
+            setuserid(userId)
+
+        }).catch(e => {
+            setTruestate(false)
+            setverifystate(false)
+            return
+        })
     }
-    const handleverify= async()=>{
+    const handleverify = async () => {
+        if (otpvalue.length < 5) {
+            return
+        }
+        console.log(otpvalue);
         await account.createSession(
             userid,
             otpvalue
-        ).then(e=>{
-            setopening(false)
-            setTruestate(false)
+        ).then(e => {
             router.push("/")
+        }).catch(e => {
+            console.log(e);
+            toast("Invalid OTP")
+            setTruestate(false)
+            setverifystate(false)
         })
 
     }
     return (
         <div className='h-[100vh] flex overflow-y-hidden'>
+            <Toaster />
             <div className='bg-[#fa7275] w-1/2 h-full flex  justify-end flex-col items-center gap-16'>
                 <Image src="/logo.png" width={170} height={170} alt='Store It logo' />
                 <div className='w-4/5 mx-auto text-white flex flex-col gap-6'>
@@ -165,7 +182,13 @@ const signup = () => {
                     <div className='text-center'>Email sent to <span className='text-[#fa7275]'>{inputs.email}</span></div>
                     <div className='mx-auto'>
 
-                        <InputOTP maxLength={6} value={otpvalue} onChange={(value) => { setotpvalue(value) }}>
+                        <InputOTP maxLength={6} value={otpvalue} onChange={(value) => {
+                            setotpvalue(value)
+                            if (value.length === 6) {
+                                handleverify()
+                                setverifystate(true)
+                            }
+                        }}>
                             <InputOTPGroup>
                                 <InputOTPSlot autoFocus={true} className="text-xl text-[#fa7275]" index={0} />
                                 <InputOTPSlot className="text-xl text-[#fa7275]" index={1} />
@@ -178,10 +201,19 @@ const signup = () => {
                                 <InputOTPSlot className="text-xl text-[#fa7275]" index={5} />
                             </InputOTPGroup>
                         </InputOTP>
-                        <Button  onClick={handleverify} className="w-[95%]  bg-[#fa7275] text-base h-10 mt-8 rounded-full cursor-pointer hover:bg-[#ff686c]">Verify</Button>
+                        {
+                            !verifystate &&
+                            <Button onClick={handleverify} className="w-[95%] btn-verify bg-[#fa7275] text-base h-10 mt-8 rounded-full cursor-pointer hover:bg-[#ff686c]">Verify</Button>
+                        }
+                        {
+                            verifystate &&
+                            <Button onClick={handleverify} className="w-[95%] btn-verify bg-[#fa7275] text-base h-10 mt-8 rounded-full cursor-pointer hover:bg-[#ff686c]">Verifying
+                                <Loader2 className="animate-spin" />
+                            </Button>
+                        }
                     </div>
 
-                    <DialogFooter className="text-center block my-3">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Resend</span></DialogFooter>
+                    <DialogFooter className="text-center block my-3 ">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Resend</span></DialogFooter>
                 </DialogContent>
             </Dialog>
 
