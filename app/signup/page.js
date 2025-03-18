@@ -107,7 +107,7 @@ const signup = () => {
             userid,
             e
         ).then(e => {
-            router.push("/")
+            router.push("/user")
         }).catch(e => {
             toast("Invalid OTP")
             setTruestate(false)

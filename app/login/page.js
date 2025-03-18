@@ -68,7 +68,7 @@ const Login = () => {
             userid,
             e
         ).then(e => {
-            router.push("/")
+            router.push("/user")
         }).catch(e => {
             console.log(e);
             toast("Invalid OTP")
