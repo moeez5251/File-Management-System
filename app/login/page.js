@@ -181,7 +181,7 @@ const Login = () => {
                         }
                     </div>
 
-                    <DialogFooter className="text-center block my-3 ">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Resend</span></DialogFooter>
+                    <DialogFooter className="text-center block my-3 ">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Click to resend.</span></DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

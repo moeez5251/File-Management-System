@@ -3,33 +3,65 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
+import { Client, Account, ID, Storage } from 'appwrite';
+
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
-import { MoreHorizontal } from "lucide-react"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input';
+import { toast } from "sonner"
+import { Toaster } from "@/components/ui/sonner"
 const User = () => {
     const router = useRouter();
-
+    const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
+        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
+    const account = new Account(client);
+    const storage = new Storage(client);
     const [isValid, setIsValid] = useState(false);
-    const [open, setOpen] = useState(false)
+    const [opening, setopening] = useState(false)
+    const [file, setfile] = useState(null)
+    useEffect(() => {
+        (async function name() {
+            const accountinfo = await account.get()
+            console.log(accountinfo);
+        }
+            ())
+        return () => {
+
+        }
+    }, [])
+    useEffect(() => {
+        console.log("hi");
+        if(file){
+            storage.createFile(
+                process.env.NEXT_PUBLIC_BUCKET_ID,
+                ID.unique(),
+                file
+        ).then(e=>{
+            toast("File uploaded successfully")
+            setfile(null)
+        }).catch(e=>{
+            toast("File upload failed")
+        })
+    }
+        
+        return () => {
+
+        }
+    }, [file])
+
+    const handleclick = () => {
+        setopening(true)
+    }
+    const handlechange = (e) => {
+        if (!e.target.files[0]) { return }
+        setfile(e.target.files[0])
+    }
 
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
@@ -43,19 +75,48 @@ const User = () => {
     if (!isValid) return null;
 
 
-
     return (
         <div className='h-[100vh] overflow-y-hidden'>
+            <Toaster />
+        
             <div className='flex items-center  justify-between mx-16 mt-5'>
                 <img className='w-42 ' src="/User.png" alt="" />
+                <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+                    <div>
 
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={20}
+                            height={20}
+                            fill="none"
+                            className="injected-svg"
+                            color="#fff"
+                            data-src="https://cdn.hugeicons.com/icons/upload-01-solid-sharp.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="#fff"
+                                fillRule="evenodd"
+                                d="M20 11.4c0-.43-.03-.852-.086-1.264l1.982-.272c.069.502.104 1.015.104 1.536C22 17.192 17.583 22 12 22S2 17.192 2 11.4c0-.521.036-1.034.104-1.536l1.982.272A9.314 9.314 0 0 0 4 11.4c0 4.811 3.642 8.6 8 8.6 4.358 0 8-3.789 8-8.6Z"
+                                clipRule="evenodd"
+                            />
+                            <path
+                                fill="#fff"
+                                fillRule="evenodd"
+                                d="m12 2 3.707 3.707-1.414 1.415L13 5.829v7.585h-2V5.83L9.707 7.122 8.293 5.707 12 2Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </div>
+
+                    Upload</Button>
             </div>
-            <Tabs defaultValue="dashboard" className="w-[25%] h-[fit]  relative top-4  mt-6 mx-4  ">
+            <Tabs defaultValue="dashboard" className="w-[25%] h-[fit]  relative top-4  mt-6 mx-6  ">
                 <div className='flex w-full'>
-                    <TabsList className="flex flex-col gap-5 h-fit bg-transparent">
+                    <TabsList className="flex flex-col gap-2 h-fit bg-transparent">
 
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none w-full h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg cursor-pointer" value="dashboard" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -75,7 +136,7 @@ const User = () => {
                             </svg>  Dashboard
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none w-full h-full outline-none px-10 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -217,28 +278,9 @@ const User = () => {
                                 />
                             </svg> Others
                         </TabsTrigger>
-                        <div className="flex w-full flex-col items-start justify-between rounded-md border px-4 py-2 sm:flex-row sm:items-center">
-                            <p className="text-sm font-medium leading-none">
-                                <span className="mr-2 rounded-lg bg-primary px-2 py-1 text-xs text-primary-foreground">
-                                </span>
-                                <span className="text-muted-foreground">My Account</span>
-                            </p>
-                            <DropdownMenu open={open} onOpenChange={setOpen}>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                        <MoreHorizontal />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-44">
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem className="text-red-600">
-                                            Delete
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                        <div className='w-[55%]' >
+                            <img className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
                         </div>
-
 
                     </TabsList>
                     <div className='relative left-[75%]  '>
@@ -247,6 +289,38 @@ const User = () => {
                     </div>
                 </div>
             </Tabs>
+            <Dialog open={opening} onopenchange={setopening}>
+                <DialogContent >
+                    <DialogHeader>
+                        <DialogTitle>Choose or drop file here</DialogTitle>
+
+                    </DialogHeader>
+                    <DialogDescription>
+                        <Input  onChange={handlechange} id="files" type="file" />
+                    </DialogDescription>
+                    <button onClick={() => { setopening(false); }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={20}
+                            height={20}
+                            fill="none"
+                            className="injected-svg"
+                            color="black"
+                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="black"
+                                fillRule="evenodd"
+                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </button>
+
+
+                </DialogContent>
+            </Dialog>
         </div>
 
     )
