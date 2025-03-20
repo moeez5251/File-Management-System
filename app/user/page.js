@@ -1,6 +1,6 @@
 "use client"
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
 import { Client, Account, ID, Storage } from 'appwrite';
@@ -16,6 +16,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
+import CustomChart from '@/components/ui/customcchart';
+
 const User = () => {
     const router = useRouter();
     const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
@@ -25,6 +27,7 @@ const User = () => {
     const [isValid, setIsValid] = useState(false);
     const [opening, setopening] = useState(false)
     const [file, setfile] = useState(null)
+    const ref = useRef()
     useEffect(() => {
         (async function name() {
             const accountinfo = await account.get()
@@ -36,20 +39,21 @@ const User = () => {
         }
     }, [])
     useEffect(() => {
-        console.log("hi");
-        if(file){
+        if (file) {
             storage.createFile(
                 process.env.NEXT_PUBLIC_BUCKET_ID,
                 ID.unique(),
                 file
-        ).then(e=>{
-            toast("File uploaded successfully")
-            setfile(null)
-        }).catch(e=>{
-            toast("File upload failed")
-        })
-    }
-        
+            ).then(e => {
+                toast("File uploaded successfully")
+                setfile(null)
+                ref.current.value = ""
+
+            }).catch(e => {
+                toast("File upload failed")
+            })
+        }
+
         return () => {
 
         }
@@ -60,6 +64,11 @@ const User = () => {
     }
     const handlechange = (e) => {
         if (!e.target.files[0]) { return }
+        if ((e.target.files[0].size / 1048576) > 5) {
+            toast("File size should be less than 5mb")
+            ref.current.value = ""
+            return
+        }
         setfile(e.target.files[0])
     }
 
@@ -76,12 +85,12 @@ const User = () => {
 
 
     return (
-        <div className='h-[100vh] overflow-y-hidden'>
+        <div className='h-[100vh] '>
             <Toaster />
-        
+
             <div className='flex items-center  justify-between mx-16 mt-5'>
                 <img className='w-42 ' src="/User.png" alt="" />
-                <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+                <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full drop-shadow-xl hover:bg-[#fa7290]">
                     <div>
 
                         <svg
@@ -111,8 +120,8 @@ const User = () => {
 
                     Upload</Button>
             </div>
-            <Tabs defaultValue="dashboard" className="w-[25%] h-[fit]  relative top-4  mt-6 mx-6  ">
-                <div className='flex w-full'>
+            <Tabs defaultValue="dashboard" className="h-full w-[94%]   relative top-4  mt-6 mx-6  flex items-start flex-row ">
+                <div className=' w-[25%]'>
                     <TabsList className="flex flex-col gap-2 h-fit bg-transparent">
 
                         <TabsTrigger
@@ -283,10 +292,17 @@ const User = () => {
                         </div>
 
                     </TabsList>
-                    <div className='relative left-[75%]  '>
-                        <TabsContent value="dashboard">Account</TabsContent>
-                        <TabsContent value="password">Password</TabsContent>
-                    </div>
+                </div>
+                <div className='relative  w-full bg-[#f1f3f8] h-full rounded-4xl '>
+                    <TabsContent className="flex p-10 gap-10 items-center" value="dashboard">
+                        <div className='rounded-3xl px-3'>
+                        <CustomChart/>
+                        </div>
+                        <div>
+                            Icons
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="documents">Password</TabsContent>
                 </div>
             </Tabs>
             <Dialog open={opening} onopenchange={setopening}>
@@ -296,7 +312,7 @@ const User = () => {
 
                     </DialogHeader>
                     <DialogDescription>
-                        <Input  onChange={handlechange} id="files" type="file" />
+                        <Input ref={ref} className=" h-40 shadow-md" onChange={handlechange} id="files" type="file" />
                     </DialogDescription>
                     <button onClick={() => { setopening(false); }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
                         <svg
