@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
 import { Client, Account, ID, Storage } from 'appwrite';
-
+import { FileIcon, defaultStyles } from 'react-file-icon';
 import {
     Dialog,
     DialogContent,
@@ -26,6 +26,7 @@ const User = () => {
     const storage = new Storage(client);
     const [isValid, setIsValid] = useState(false);
     const [opening, setopening] = useState(false)
+    const [files, setfiles] = useState([])
     const [file, setfile] = useState(null)
     const ref = useRef()
     useEffect(() => {
@@ -53,7 +54,6 @@ const User = () => {
                 toast("File upload failed")
             })
         }
-
         return () => {
 
         }
@@ -71,7 +71,39 @@ const User = () => {
         }
         setfile(e.target.files[0])
     }
+    const handlefilegetting = async () => {
+        try {
+            const response = await storage.listFiles(
+                process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
+            );
 
+            // List of document MIME types (excluding images, videos, and audio)
+            const documentMimeTypes = [
+                "application/pdf", // PDF
+                "application/msword", // Word (.doc)
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (.docx)
+                "application/vnd.ms-excel", // Excel (.xls)
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel (.xlsx)
+                "application/vnd.ms-powerpoint", // PowerPoint (.ppt)
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (.pptx)
+                "text/plain", // Plain text (.txt)
+                "application/rtf", // Rich Text Format (.rtf)
+                "application/vnd.oasis.opendocument.text", // OpenDocument Text (.odt)
+                "application/vnd.oasis.opendocument.spreadsheet" // OpenDocument Spreadsheet (.ods)
+            ];
+
+            // Filter only document files
+            const filteredFiles = response.files.filter(file =>
+                documentMimeTypes.includes(file.mimeType)
+            );
+
+            console.log(filteredFiles); // Logs only document files
+            setfiles(filteredFiles)
+        } catch (error) {
+        }
+    }
+
+    // handlefilegetting()
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
         if (!cookieFallback || cookieFallback === '[]') {
@@ -83,14 +115,12 @@ const User = () => {
 
     if (!isValid) return null;
 
-
     return (
         <div className='h-[100vh] '>
             <Toaster />
-
             <div className='flex items-center  justify-between mx-16 mt-5'>
                 <img className='w-42 ' src="/User.png" alt="" />
-                <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full drop-shadow-xl hover:bg-[#fa7290]">
+                <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
                     <div>
 
                         <svg
@@ -125,7 +155,7 @@ const User = () => {
                     <TabsList className="flex flex-col gap-2 h-fit bg-transparent">
 
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -145,7 +175,7 @@ const User = () => {
                             </svg>  Dashboard
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -186,7 +216,7 @@ const User = () => {
                             </svg> Documents
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Images" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Images" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -225,7 +255,7 @@ const User = () => {
                             </svg>  Images
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Media" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Media" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -257,7 +287,7 @@ const User = () => {
                             </svg>Media
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Other" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Other" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -287,22 +317,103 @@ const User = () => {
                                 />
                             </svg> Others
                         </TabsTrigger>
-                        <div className='w-[55%]' >
+                        <div className='w-[70%]' >
                             <img className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
                         </div>
 
                     </TabsList>
                 </div>
-                <div className='relative  w-full bg-[#f1f3f8] h-full rounded-4xl '>
-                    <TabsContent className="flex p-10 gap-10 items-center" value="dashboard">
+                <div className='relative  w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
+                    <TabsContent className="flex p-8 gap-10 items-center flex-col justify-center" value="dashboard">
                         <div className='rounded-3xl px-3'>
-                        <CustomChart/>
+                            <CustomChart />
                         </div>
-                        <div>
-                            Icons
+                        <div className='grid grid-cols-2 gap-10'>
+                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                                <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
+                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
+                                <div className='w-full h-[2px] bg-gray-200 my-5'></div>
+                                <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
+                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                            </div>
+                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                                <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
+                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
+                                <div className='w-full h-[2px] bg-gray-200 my-5'></div>
+                                <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
+                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                            </div>
+                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                                <img className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
+                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
+                                <div className='w-full h-[2px] bg-gray-200 my-5'></div>
+                                <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
+                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                            </div>
+                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                                <img className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
+                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
+                                <div className='w-full h-[2px] bg-gray-200 my-5'></div>
+                                <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
+                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                            </div>
                         </div>
                     </TabsContent>
-                    <TabsContent value="documents">Password</TabsContent>
+                    <TabsContent className="p-8" value="documents">
+                        <div className='flex  items-center justify-between'>
+                            <h1 className='font-bold text-4xl text-[#333f4e]'>Documents</h1>
+                            <div className='font-bold text-lg'>Total: <span>2GB</span> </div>
+                        </div>
+                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))]  gap-y-10 gap-x-8'>
+                            {
+                                files.map((f, key) => {
+
+
+                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                        <div className='flex items-stretch justify-between'>
+
+                                            <div className='bg-[#ffd0d1] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                <div className="logo w-7 object-contain rounded-4xl">
+                                                    <FileIcon extension="docx" {...defaultStyles.docx} />
+                                                </div>
+                                            </div>
+                                            <div className='flex flex-col gap-8 items-end'>
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width={30}
+                                                    height={30}
+                                                    fill="none"
+                                                    className="injected-svg cursor-pointer"
+                                                    color="black"
+                                                    data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke="black"
+                                                        strokeWidth={1.5}
+                                                        d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                    />
+                                                </svg>
+                                                <span>10 MB</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className='font-semibold mt-4'>
+                                            {f.name}
+                                        </div>
+                                        <div className='text-gray-400 text-sm mt-2.5'>16 June</div>
+                                    </div>
+                                })
+
+                            }
+
+                        </div>
+
+                    </TabsContent>
                 </div>
             </Tabs>
             <Dialog open={opening} onopenchange={setopening}>
