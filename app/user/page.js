@@ -29,36 +29,17 @@ const User = () => {
     const [files, setfiles] = useState([])
     const [file, setfile] = useState(null)
     const ref = useRef()
+    const [accountinfo, setaccountinfo] = useState("")
     useEffect(() => {
         (async function name() {
-            const accountinfo = await account.get()
-            console.log(accountinfo);
+            const accountin = await account.get()
+            setaccountinfo(accountin)
         }
             ())
         return () => {
 
         }
     }, [])
-    useEffect(() => {
-        if (file) {
-            storage.createFile(
-                process.env.NEXT_PUBLIC_BUCKET_ID,
-                ID.unique(),
-                file
-            ).then(e => {
-                toast("File uploaded successfully")
-                setfile(null)
-                ref.current.value = ""
-
-            }).catch(e => {
-                toast("File upload failed")
-            })
-        }
-        return () => {
-
-        }
-    }, [file])
-
     const handleclick = () => {
         setopening(true)
     }
@@ -71,13 +52,33 @@ const User = () => {
         }
         setfile(e.target.files[0])
     }
+    const handlelogout = async () => {
+        const a = await account.deleteSessions();
+        router.push("/login");
+    }
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
+        return date.toLocaleDateString("en-US", options);
+    }
+    function formatFileSize(bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1024 * 1024) {
+            return (bytes / 1024).toFixed(2) + " KB";
+        } else if (bytes < 1024 * 1024 * 1024) {
+            return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+        } else {
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+        }
+    }
+
     const handlefilegetting = async () => {
         try {
             const response = await storage.listFiles(
                 process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
             );
 
-            // List of document MIME types (excluding images, videos, and audio)
             const documentMimeTypes = [
                 "application/pdf", // PDF
                 "application/msword", // Word (.doc)
@@ -91,19 +92,45 @@ const User = () => {
                 "application/vnd.oasis.opendocument.text", // OpenDocument Text (.odt)
                 "application/vnd.oasis.opendocument.spreadsheet" // OpenDocument Spreadsheet (.ods)
             ];
-
-            // Filter only document files
             const filteredFiles = response.files.filter(file =>
                 documentMimeTypes.includes(file.mimeType)
             );
+            const permissionfiles = filteredFiles.filter(e => {
+                e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id;
 
-            console.log(filteredFiles); // Logs only document files
-            setfiles(filteredFiles)
+            })
+            setfiles(permissionfiles)
         } catch (error) {
         }
     }
 
-    // handlefilegetting()
+    useEffect(() => {
+        if (file) {
+            storage.createFile(
+                process.env.NEXT_PUBLIC_BUCKET_ID,
+                ID.unique(),
+                file
+            ).then(e => {
+                toast("File uploaded successfully")
+                setfile(null)
+                ref.current.value = ""
+                handlefilegetting()
+            }).catch(e => {
+                toast("File upload failed")
+            })
+        }
+        return () => {
+
+        }
+    }, [file])
+    useEffect(() => {
+        console.log(files);
+
+        return () => {
+
+        }
+    }, [files])
+
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
         if (!cookieFallback || cookieFallback === '[]') {
@@ -120,35 +147,71 @@ const User = () => {
             <Toaster />
             <div className='flex items-center  justify-between mx-16 mt-5'>
                 <img className='w-42 ' src="/User.png" alt="" />
-                <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
-                    <div>
+                <div className='flex items-center gap-5'>
 
+                    <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+                        <div>
+
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width={20}
+                                height={20}
+                                fill="none"
+                                className="injected-svg"
+                                color="#fff"
+                                data-src="https://cdn.hugeicons.com/icons/upload-01-solid-sharp.svg"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    fill="#fff"
+                                    fillRule="evenodd"
+                                    d="M20 11.4c0-.43-.03-.852-.086-1.264l1.982-.272c.069.502.104 1.015.104 1.536C22 17.192 17.583 22 12 22S2 17.192 2 11.4c0-.521.036-1.034.104-1.536l1.982.272A9.314 9.314 0 0 0 4 11.4c0 4.811 3.642 8.6 8 8.6 4.358 0 8-3.789 8-8.6Z"
+                                    clipRule="evenodd"
+                                />
+                                <path
+                                    fill="#fff"
+                                    fillRule="evenodd"
+                                    d="m12 2 3.707 3.707-1.414 1.415L13 5.829v7.585h-2V5.83L9.707 7.122 8.293 5.707 12 2Z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+
+                        Upload</Button>
+                    <div onClick={handlelogout} className='cursor-pointer'>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width={20}
-                            height={20}
+                            width={28}
+                            height={28}
                             fill="none"
                             className="injected-svg"
-                            color="#fff"
-                            data-src="https://cdn.hugeicons.com/icons/upload-01-solid-sharp.svg"
-                            viewBox="0 0 24 24"
+                            color="#e62911"
+                            data-src="https://cdn.hugeicons.com/icons/logout-02-duotone-rounded.svg"
                         >
                             <path
-                                fill="#fff"
-                                fillRule="evenodd"
-                                d="M20 11.4c0-.43-.03-.852-.086-1.264l1.982-.272c.069.502.104 1.015.104 1.536C22 17.192 17.583 22 12 22S2 17.192 2 11.4c0-.521.036-1.034.104-1.536l1.982.272A9.314 9.314 0 0 0 4 11.4c0 4.811 3.642 8.6 8 8.6 4.358 0 8-3.789 8-8.6Z"
-                                clipRule="evenodd"
+                                fill="#e62911"
+                                d="M10.337 3.234 11 3v18l-.663-.234c-2.578-.91-3.868-1.365-4.602-2.403C5 17.324 5 15.957 5 13.223v-2.445c0-2.735 0-4.102.735-5.14.734-1.039 2.024-1.494 4.602-2.404Z"
+                                opacity={0.4}
                             />
                             <path
-                                fill="#fff"
-                                fillRule="evenodd"
-                                d="m12 2 3.707 3.707-1.414 1.415L13 5.829v7.585h-2V5.83L9.707 7.122 8.293 5.707 12 2Z"
-                                clipRule="evenodd"
+                                stroke="#e62911"
+                                strokeLinecap="round"
+                                strokeWidth={1.5}
+                                d="m11 3-.663.234c-2.578.91-3.868 1.365-4.602 2.403C5 6.676 5 8.043 5 10.777v2.445c0 2.735 0 4.102.735 5.14.734 1.039 2.024 1.494 4.602 2.404L11 21"
+                            />
+                            <path
+                                stroke="#e62911"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M21 12H11m10 0c0-.7-1.994-2.008-2.5-2.5M21 12c0 .7-1.994 2.008-2.5 2.5"
                             />
                         </svg>
+
                     </div>
 
-                    Upload</Button>
+                </div>
+
             </div>
             <Tabs defaultValue="dashboard" className="h-full w-[94%]   relative top-4  mt-6 mx-6  flex items-start flex-row ">
                 <div className=' w-[25%]'>
@@ -174,7 +237,7 @@ const User = () => {
                                 />
                             </svg>  Dashboard
                         </TabsTrigger>
-                        <TabsTrigger
+                        <TabsTrigger onClick={handlefilegetting}
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -368,17 +431,15 @@ const User = () => {
                             <h1 className='font-bold text-4xl text-[#333f4e]'>Documents</h1>
                             <div className='font-bold text-lg'>Total: <span>2GB</span> </div>
                         </div>
-                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))]  gap-y-10 gap-x-8'>
+                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
                             {
-                                files.map((f, key) => {
-
-
+                                files.map((e, key) =>
                                     <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                                         <div className='flex items-stretch justify-between'>
 
                                             <div className='bg-[#ffd0d1] h-14 p-3 rounded-full w-fit relative -top-2'>
                                                 <div className="logo w-7 object-contain rounded-4xl">
-                                                    <FileIcon extension="docx" {...defaultStyles.docx} />
+                                                    <FileIcon extension={e.name.split(".")[1]} {...defaultStyles.docx} />
                                                 </div>
                                             </div>
                                             <div className='flex flex-col gap-8 items-end'>
@@ -398,16 +459,17 @@ const User = () => {
                                                         d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
                                                     />
                                                 </svg>
-                                                <span>10 MB</span>
+                                                <span>{formatFileSize(e.sizeOriginal)}</span>
                                             </div>
                                         </div>
                                         <div
                                             className='font-semibold mt-4'>
-                                            {f.name}
+                                            {e.name}
                                         </div>
-                                        <div className='text-gray-400 text-sm mt-2.5'>16 June</div>
+                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                     </div>
-                                })
+                                )
+
 
                             }
 
