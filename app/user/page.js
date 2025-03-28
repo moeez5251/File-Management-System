@@ -30,6 +30,10 @@ const User = () => {
     const [file, setfile] = useState(null)
     const ref = useRef()
     const [accountinfo, setaccountinfo] = useState("")
+    const [docfiles, setdocfiles] = useState([])
+    const [docfilesize, setdocfilesize] = useState({
+        size:""
+    })
     useEffect(() => {
         (async function name() {
             const accountin = await account.get()
@@ -74,11 +78,12 @@ const User = () => {
     }
 
     const handlefilegetting = async () => {
+        toast("Getting files...")
         try {
             const response = await storage.listFiles(
                 process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
             );
-
+            setfiles(response.files)
             const documentMimeTypes = [
                 "application/pdf", // PDF
                 "application/msword", // Word (.doc)
@@ -92,15 +97,13 @@ const User = () => {
                 "application/vnd.oasis.opendocument.text", // OpenDocument Text (.odt)
                 "application/vnd.oasis.opendocument.spreadsheet" // OpenDocument Spreadsheet (.ods)
             ];
-            const filteredFiles = response.files.filter(file =>
-                documentMimeTypes.includes(file.mimeType)
-            );
-            const permissionfiles = filteredFiles.filter(e => {
-                e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id;
+            const filteredfiles = response.files.filter(file => documentMimeTypes.includes(file.mimeType))
+            setdocfiles(
+                filteredfiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
+            )
 
-            })
-            setfiles(permissionfiles)
         } catch (error) {
+            toast("Failed to get files")
         }
     }
 
@@ -124,12 +127,16 @@ const User = () => {
         }
     }, [file])
     useEffect(() => {
-        console.log(files);
-
+        if (docfiles.length > 0) {
+            const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
+            setdocfilesize({
+                size:formatFileSize(totalsize)
+            })
+        }
         return () => {
 
         }
-    }, [files])
+    }, [docfiles])
 
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
@@ -429,17 +436,18 @@ const User = () => {
                     <TabsContent className="p-8" value="documents">
                         <div className='flex  items-center justify-between'>
                             <h1 className='font-bold text-4xl text-[#333f4e]'>Documents</h1>
-                            <div className='font-bold text-lg'>Total: <span>2GB</span> </div>
+                            <div className='font-bold text-lg'>Total: <span>{docfilesize.size}</span> </div>
                         </div>
                         <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
                             {
-                                files.map((e, key) =>
+                                docfiles.map((e, key) =>
                                     <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                                         <div className='flex items-stretch justify-between'>
 
                                             <div className='bg-[#ffd0d1] h-14 p-3 rounded-full w-fit relative -top-2'>
                                                 <div className="logo w-7 object-contain rounded-4xl">
                                                     <FileIcon extension={e.name.split(".")[1]} {...defaultStyles.docx} />
+                                                   
                                                 </div>
                                             </div>
                                             <div className='flex flex-col gap-8 items-end'>
