@@ -42,11 +42,27 @@ const User = () => {
     const [renameinp, setRenameinp] = useState("")
     const [docfilesize, setdocfilesize] = useState({
         size: "",
-        lastupdated:""
+        lastupdated: ""
     })
     const [deletedialog, setdeletedialog] = useState(false)
     const [Details, setDetails] = useState(false)
     const [Det, setDet] = useState("")
+    const [upload, setupload] = useState(false)
+    const [imagefiles, setimagefiles] = useState([])
+    const [imgsize, setimgsize] = useState({
+        size: "0 B",
+        lastupdated: ""
+    })
+    const [mediafiles, setmediafiles] = useState([])
+    const [mediasize, setMediasize] = useState({
+        size: "0 B",
+        lastupdated: ""
+    })
+    const [other, setOther] = useState([])
+    const [othersize, setothersize] = useState({
+        size: "0 B",
+        lastupdated: ""
+    })
     useEffect(() => {
         (async function name() {
             const accountin = await account.get()
@@ -113,6 +129,51 @@ const User = () => {
             setdocfiles(
                 filteredfiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
             )
+            const imageMimeTypes = [
+                "image/jpeg", // JPEG (.jpg, .jpeg)
+                "image/png", // PNG (.png)
+                "image/gif", // GIF (.gif)
+                "image/bmp", // Bitmap (.bmp)
+                "image/webp", // WebP (.webp)
+                "image/tiff", // TIFF (.tiff)
+                "image/svg+xml", // SVG (.svg)
+                "image/vnd.adobe.photoshop", // Photoshop (.psd)
+                "image/x-icon", // Icon (.ico)
+                "image/heif", // HEIF (.heif)
+                "image/heic", // HEIC (.heic)
+            ];
+            const filteredimagefiles = response.files.filter(file => imageMimeTypes.includes(file.mimeType))
+            setimagefiles(
+                filteredimagefiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
+            )
+            const mediaMimeTypes = [
+                "audio/mpeg", // MP3 (.mp3)
+                "audio/wav", // WAV (.wav)
+                "audio/ogg", // OGG (.ogg)
+                "audio/flac", // FLAC (.flac)
+                "audio/aac", // AAC (.aac)
+                "audio/webm", // WebM (.webm)
+                "video/mp4", // MP4 (.mp4)
+                "video/webm", // WebM (.webm)
+                "video/ogg", // OGG (.ogv)
+                "video/x-msvideo", // AVI (.avi)
+                "video/quicktime", // MOV (.mov)
+                "video/x-matroska", // MKV (.mkv)
+                "video/3gpp", // 3GP (.3gp)
+                "video/flv", // FLV (.flv)
+            ];
+            const filteredmediafiles = response.files.filter(file => mediaMimeTypes.includes(file.mimeType))
+            setmediafiles(
+                filteredmediafiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
+                
+            )
+            const otherFiles = response.files.filter(file => {
+                return !documentMimeTypes.includes(file.mimeType) &&
+                       !imageMimeTypes.includes(file.mimeType) &&
+                       !mediaMimeTypes.includes(file.mimeType);
+            });            
+            console.log(otherFiles);
+              setOther(otherFiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id));
 
         } catch (error) {
             toast("Failed to get files")
@@ -138,7 +199,7 @@ const User = () => {
     }
     const handledeletefile = async () => {
         const fileid = sessionStorage.getItem("moveid")
-      await storage.deleteFile(
+        await storage.deleteFile(
             process.env.NEXT_PUBLIC_BUCKET_ID,
             fileid
         )
@@ -149,12 +210,13 @@ const User = () => {
     }
     useEffect(() => {
         if (file) {
-            toast("Uploading...")
+            setupload(true)
             storage.createFile(
                 process.env.NEXT_PUBLIC_BUCKET_ID,
                 ID.unique(),
                 file
             ).then(e => {
+                setupload(false)
                 toast("File uploaded successfully")
                 setfile(null)
                 ref.current.value = ""
@@ -168,19 +230,43 @@ const User = () => {
         }
     }, [file])
     useEffect(() => {
-        console.log(files);
+        handlefilegetting()
         if (docfiles.length > 0) {
             const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated=docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const lastupdated = docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
             setdocfilesize({
                 size: formatFileSize(totalsize),
-                lastupdated:formatDate(lastupdated)
+                lastupdated: formatDate(lastupdated)
+            })
+        }
+        if (imagefiles.length > 0) {
+            const totalsize = imagefiles.reduce((total, file) => total + file.sizeOriginal, 0);
+            const lastupdated = imagefiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            setimgsize({
+                size: formatFileSize(totalsize),
+                lastupdated: formatDate(lastupdated)
+            })
+        }
+        if(mediafiles.length > 0){
+            const totalsize = mediafiles.reduce((total, file) => total + file.sizeOriginal, 0);
+            const lastupdated = mediafiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            setMediasize({
+                size: formatFileSize(totalsize),
+                lastupdated: formatDate(lastupdated)
+            })
+        }
+        if(other.length > 0){
+            const totalsize = other.reduce((total, file) => total + file.sizeOriginal, 0);
+            const lastupdated = other.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            setothersize({
+                size: formatFileSize(totalsize),
+                lastupdated: formatDate(lastupdated)
             })
         }
         return () => {
 
         }
-    }, [docfiles])
+    }, [docfiles, imagefiles,mediafiles,other])
 
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
@@ -329,7 +415,7 @@ const User = () => {
                                 />
                             </svg> Documents
                         </TabsTrigger>
-                        <TabsTrigger
+                        <TabsTrigger onClick={handlefilegetting}
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Images" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -368,7 +454,7 @@ const User = () => {
                                 />
                             </svg>  Images
                         </TabsTrigger>
-                        <TabsTrigger
+                        <TabsTrigger onClick={handlefilegetting}
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Media" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -401,7 +487,7 @@ const User = () => {
                             </svg>Media
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Other" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" onClick={handlefilegetting} value="Other" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -431,7 +517,7 @@ const User = () => {
                                 />
                             </svg> Others
                         </TabsTrigger>
-                        <div className='w-[70%]' >
+                        <div className='w-[90%]' >
                             <img className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
                         </div>
 
@@ -445,35 +531,35 @@ const User = () => {
                         <div className='grid grid-cols-2 gap-10'>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>{docfilesize.size}</span>
+                                <span className='absolute top-4 right-4'>{ docfilesize.size.trim()===""?"0 B": docfilesize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>{docfilesize.lastupdated}</div>
+                                <div className='w-full text-center my-5'>{ docfilesize.lastupdated.trim()===""?"":docfilesize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <span className='absolute top-4 right-4'>{imgsize.size.trim()===""?"0 B": imgsize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                                <div className='w-full text-center my-5'>{imgsize.lastupdated.trim()===""?"":imgsize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <span className='absolute top-4 right-4'>{ mediasize.size.trim()===""?"0 B": mediasize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                                <div className='w-full text-center my-5'>{ mediasize.lastupdated.trim()===""?"":mediasize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <span className='absolute top-4 right-4'>{othersize.size.trim()===""?"0 B":othersize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                                <div className='w-full text-center my-5'>{ othersize.lastupdated.trim()===""?"":othersize.lastupdated}</div>
                             </div>
                         </div>
                     </TabsContent>
@@ -539,9 +625,333 @@ const User = () => {
                                                             <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem onClick={
-                                                            ()=>{
-                                                            setDet(e)
-                                                            setDetails(true)
+                                                            () => {
+                                                                setDet(e)
+                                                                setDetails(true)
+                                                            }
+                                                        } className="py-2">
+                                                            <img src="/Drop-Down/Details.png" alt="Details" />
+                                                            Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                console.log("do");
+                                                                const result = storage.getFileDownload(
+                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                    e.$id
+                                                                )
+                                                                window.location.href = result
+                                                            }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Download.png" alt="Download" />
+                                                            Download
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("moveid", e.$id)
+                                                            setdeletedialog(true)
+                                                        }} data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                            Move to Trash
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                                <span>{formatFileSize(e.sizeOriginal)}</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className='font-semibold mt-4'>
+                                            {e.name}
+                                        </div>
+                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                    </div>
+                                )
+
+
+                            }
+
+                        </div>
+
+                    </TabsContent>
+                    <TabsContent className="p-8" value="Images">
+                        <div className='flex  items-center justify-between'>
+                            <h1 className='font-bold text-4xl text-[#333f4e]'>Images</h1>
+                            <div className='font-bold text-lg'>Total: <span>{imgsize.size}</span> </div>
+                        </div>
+                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                            {
+                                imagefiles.map((e, key) =>
+                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                        <div className='flex items-stretch justify-between'>
+
+                                           
+                                                <div className="logo w-16 h-16 object-contain">
+                                                        <img
+                                                        src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                                                        alt="File Preview"
+                                                        className="w-full h-full rounded-full"
+                                                    />
+
+
+                                            </div>
+                                            <div className='flex flex-col gap-8 items-end'>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger>
+
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width={30}
+                                                            height={30}
+                                                            fill="none"
+                                                            className="injected-svg cursor-pointer"
+                                                            color="black"
+                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke="black"
+                                                                strokeWidth={1.5}
+                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                            />
+                                                        </svg>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("renameid", e.$id)
+                                                            setrenamedialog(true)
+                                                            setRenameinp(e.name)
+                                                        }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                setDet(e)
+                                                                setDetails(true)
+                                                            }
+                                                        } className="py-2">
+                                                            <img src="/Drop-Down/Details.png" alt="Details" />
+                                                            Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                console.log("do");
+                                                                const result = storage.getFileDownload(
+                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                    e.$id
+                                                                )
+                                                                window.location.href = result
+                                                            }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Download.png" alt="Download" />
+                                                            Download
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("moveid", e.$id)
+                                                            setdeletedialog(true)
+                                                        }} data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                            Move to Trash
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                                <span>{formatFileSize(e.sizeOriginal)}</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className='font-semibold mt-4'>
+                                            {e.name}
+                                        </div>
+                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                    </div>
+                                )
+
+
+                            }
+
+                        </div>
+
+                    </TabsContent>
+                    <TabsContent className="p-8" value="Media">
+                        <div className='flex  items-center justify-between'>
+                            <h1 className='font-bold text-4xl text-[#333f4e]'>Media</h1>
+                            <div className='font-bold text-lg'>Total: <span>{mediasize.size}</span> </div>
+                        </div>
+                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                            {
+                                mediafiles.map((e, key) =>
+                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                        <div className='flex items-stretch justify-between'>
+
+                                            <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                <div className="logo w-7 object-contain rounded-4xl">
+                                                    <FileIcon
+                                                        extension={e.name.split(".").pop() || "txt"}
+                                                        {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                        color="#EAEAEA"
+                                                        fold={true}
+                                                        foldColor="#C0C0C0"
+                                                        glyphColor="#2563EB"
+                                                        gradientColor="#FFFFFF"
+                                                        gradientOpacity={0.7}
+                                                        labelColor="#EF4444"
+                                                        labelTextColor="#FFFFFF"
+                                                        radius={8}
+
+                                                    />
+
+                                                </div>
+                                            </div>
+                                            <div className='flex flex-col gap-8 items-end'>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger>
+
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width={30}
+                                                            height={30}
+                                                            fill="none"
+                                                            className="injected-svg cursor-pointer"
+                                                            color="black"
+                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke="black"
+                                                                strokeWidth={1.5}
+                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                            />
+                                                        </svg>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("renameid", e.$id)
+                                                            setrenamedialog(true)
+                                                            setRenameinp(e.name)
+                                                        }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                setDet(e)
+                                                                setDetails(true)
+                                                            }
+                                                        } className="py-2">
+                                                            <img src="/Drop-Down/Details.png" alt="Details" />
+                                                            Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                console.log("do");
+                                                                const result = storage.getFileDownload(
+                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                    e.$id
+                                                                )
+                                                                window.location.href = result
+                                                            }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Download.png" alt="Download" />
+                                                            Download
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("moveid", e.$id)
+                                                            setdeletedialog(true)
+                                                        }} data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                            Move to Trash
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                                <span>{formatFileSize(e.sizeOriginal)}</span>
+                                            </div>
+                                        </div>
+                                        <div
+                                            className='font-semibold mt-4'>
+                                            {e.name}
+                                        </div>
+                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                    </div>
+                                )
+
+
+                            }
+
+                        </div>
+
+                    </TabsContent>
+                    <TabsContent className="p-8" value="Other">
+                        <div className='flex  items-center justify-between'>
+                            <h1 className='font-bold text-4xl text-[#333f4e]'>Others</h1>
+                            <div className='font-bold text-lg'>Total: <span>{othersize.size}</span> </div>
+                        </div>
+                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                            {
+                                other.map((e, key) =>
+                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                        <div className='flex items-stretch justify-between'>
+
+                                            <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                <div className="logo w-7 object-contain rounded-4xl">
+                                                    <FileIcon
+                                                        extension={e.name.split(".").pop() || "txt"}
+                                                        {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                        color="#EAEAEA"
+                                                        fold={true}
+                                                        foldColor="#C0C0C0"
+                                                        glyphColor="#2563EB"
+                                                        gradientColor="#FFFFFF"
+                                                        gradientOpacity={0.7}
+                                                        labelColor="#EF4444"
+                                                        labelTextColor="#FFFFFF"
+                                                        radius={8}
+
+                                                    />
+
+                                                </div>
+                                            </div>
+                                            <div className='flex flex-col gap-8 items-end'>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger>
+
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width={30}
+                                                            height={30}
+                                                            fill="none"
+                                                            className="injected-svg cursor-pointer"
+                                                            color="black"
+                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke="black"
+                                                                strokeWidth={1.5}
+                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                            />
+                                                        </svg>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("renameid", e.$id)
+                                                            setrenamedialog(true)
+                                                            setRenameinp(e.name)
+                                                        }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                setDet(e)
+                                                                setDetails(true)
                                                             }
                                                         } className="py-2">
                                                             <img src="/Drop-Down/Details.png" alt="Details" />
@@ -590,24 +1000,39 @@ const User = () => {
                     </TabsContent>
                 </div>
             </Tabs>
-            <Dialog open={opening} onopenchange={setopening}>
-                <DialogContent >
-                    <DialogHeader>
-                        <DialogTitle>Choose or drop file here</DialogTitle>
 
+            <Dialog open={opening} onOpenChange={setopening}>
+                <DialogContent className="max-w-lg bg-white p-6 rounded-2xl shadow-xl fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/4">
+                    <DialogHeader className="text-center">
+                        <DialogTitle className="text-xl font-semibold">Choose or drop file here</DialogTitle>
                     </DialogHeader>
-                    <DialogDescription>
-                        <Input ref={ref} className=" h-40 shadow-md" onChange={handlechange} id="files" type="file" />
+                    <DialogDescription className="text-center text-gray-500 mb-4">
+                        Upload your file easily by dragging it into the area below or by clicking the button to browse.
                     </DialogDescription>
-                    <button onClick={() => { setopening(false); }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                    <form className="flex flex-col items-center justify-center w-full h-fit">
+                        <label htmlFor="file" className="cursor-pointer bg-gray-100 p-10 rounded-2xl border-2 border-dashed border-gray-400 shadow-md w-full flex flex-col items-center gap-3 transition-all hover:bg-gray-200">
+                            <svg className="h-12 fill-gray-500" viewBox="0 0 640 512">
+                                <path d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"></path>
+                            </svg>
+                            <p className="text-gray-700 font-medium">Drag & Drop</p>
+                            <p className="text-gray-500">or</p>
+                            <span className="bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-300 hover:bg-gray-900">Browse file</span>
+                        </label>
+                        <Input
+                            ref={ref}
+                            onChange={handlechange}
+                            type="file"
+                            id="file"
+                            className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+
+                    </form>
+                    <button onClick={() => setopening(false)} className='absolute top-3 right-3 bg-gray-300 p-2 rounded-full shadow-md hover:bg-gray-400 transition-all cursor-pointer z-10'>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width={20}
                             height={20}
                             fill="none"
-                            className="injected-svg"
-                            color="black"
-                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
                             viewBox="0 0 24 24"
                         >
                             <path
@@ -618,10 +1043,9 @@ const User = () => {
                             />
                         </svg>
                     </button>
-
-
                 </DialogContent>
             </Dialog>
+
             <Dialog open={renamedialog} onopenchange={setrenamedialog}>
                 <DialogContent className="w-80 rounded-3xl h-64" >
                     <DialogHeader className="w-full">
@@ -705,8 +1129,8 @@ const User = () => {
                             <span className="w-10 object-contain rounded-4xl">
 
                                 <FileIcon
-                                    extension={Det.name?Det.name.split(".").pop():"txt"}
-                                    {...defaultStyles[Det.name?Det.name.split(".").pop():"txt"]}
+                                    extension={Det.name ? Det.name.split(".").pop() : "txt"}
+                                    {...defaultStyles[Det.name ? Det.name.split(".").pop() : "txt"]}
                                     color="#EAEAEA"
                                     fold={true}
                                     foldColor="#C0C0C0"
@@ -731,12 +1155,12 @@ const User = () => {
                                 <span>Last modified:</span>
                             </span>
                             <span className='flex gap-3 flex-col'>
-                                <span className='text-black font-semibold'>{Det.name?Det.name.split(".").pop():""}</span>
+                                <span className='text-black font-semibold'>{Det.name ? Det.name.split(".").pop() : ""}</span>
                                 <span className='text-black font-semibold'>{formatFileSize(Det.sizeOriginal)}</span>
                                 <span className='text-black font-semibold'>{formatDate(Det.$updatedAt)}</span>
                             </span>
-                           
-                           
+
+
                         </span>
                     </DialogDescription>
                     <button onClick={() => { setDetails(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
@@ -760,7 +1184,35 @@ const User = () => {
                     </button>
                 </DialogContent>
             </Dialog>
-
+            <Dialog open={upload} onopenchange={setupload}>
+                <DialogContent className="w-80 rounded-3xl h-16 fixed left-[85%] top-[88%] overflow-hidden" >
+                    <DialogHeader className="w-full">
+                        <DialogTitle className="text-base font-semibold top-0">Uploading...</DialogTitle>
+                        <span className='w-full h-0.5 bg-red-800 absolute bottom-0.5 left-0 animate-line'></span>
+                    </DialogHeader>
+                    <DialogDescription className="top-0">
+                    </DialogDescription>
+                    <button className='absolute top-3  right-3 bg-white p-1 rounded-2xl z-40 pointer-events-none '>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={15}
+                            height={15}
+                            fill="none"
+                            className="injected-svg"
+                            color="white"
+                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="white"
+                                fillRule="evenodd"
+                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </button>
+                </DialogContent>
+            </Dialog>
         </div>
 
     )
