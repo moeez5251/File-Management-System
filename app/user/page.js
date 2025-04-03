@@ -17,7 +17,14 @@ import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
 import CustomChart from '@/components/ui/customcchart';
-
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 const User = () => {
     const router = useRouter();
     const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
@@ -31,9 +38,15 @@ const User = () => {
     const ref = useRef()
     const [accountinfo, setaccountinfo] = useState("")
     const [docfiles, setdocfiles] = useState([])
+    const [renamedialog, setrenamedialog] = useState(false)
+    const [renameinp, setRenameinp] = useState("")
     const [docfilesize, setdocfilesize] = useState({
-        size:""
+        size: "",
+        lastupdated:""
     })
+    const [deletedialog, setdeletedialog] = useState(false)
+    const [Details, setDetails] = useState(false)
+    const [Det, setDet] = useState("")
     useEffect(() => {
         (async function name() {
             const accountin = await account.get()
@@ -78,7 +91,6 @@ const User = () => {
     }
 
     const handlefilegetting = async () => {
-        toast("Getting files...")
         try {
             const response = await storage.listFiles(
                 process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
@@ -106,9 +118,38 @@ const User = () => {
             toast("Failed to get files")
         }
     }
+    const handlerename = async () => {
+        if (renameinp === "") {
+            return
+        }
+        const renameid = sessionStorage.getItem("renameid")
+        if (renameid) {
 
+            await storage.updateFile(
+                process.env.NEXT_PUBLIC_BUCKET_ID,
+                renameid,
+                renameinp,
+            );
+        }
+        setRenameinp("")
+        setrenamedialog(false)
+        handlefilegetting()
+        sessionStorage.clear()
+    }
+    const handledeletefile = async () => {
+        const fileid = sessionStorage.getItem("moveid")
+      await storage.deleteFile(
+            process.env.NEXT_PUBLIC_BUCKET_ID,
+            fileid
+        )
+        setdeletedialog(false)
+        handlefilegetting()
+        sessionStorage.clear()
+        toast("File deleted successfully")
+    }
     useEffect(() => {
         if (file) {
+            toast("Uploading...")
             storage.createFile(
                 process.env.NEXT_PUBLIC_BUCKET_ID,
                 ID.unique(),
@@ -127,10 +168,13 @@ const User = () => {
         }
     }, [file])
     useEffect(() => {
+        console.log(files);
         if (docfiles.length > 0) {
             const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
+            const lastupdated=docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
             setdocfilesize({
-                size:formatFileSize(totalsize)
+                size: formatFileSize(totalsize),
+                lastupdated:formatDate(lastupdated)
             })
         }
         return () => {
@@ -401,11 +445,11 @@ const User = () => {
                         <div className='grid grid-cols-2 gap-10'>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>1 GB</span>
+                                <span className='absolute top-4 right-4'>{docfilesize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>10:15,Friday</div>
+                                <div className='w-full text-center my-5'>{docfilesize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
@@ -444,29 +488,89 @@ const User = () => {
                                     <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                                         <div className='flex items-stretch justify-between'>
 
-                                            <div className='bg-[#ffd0d1] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                            <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
                                                 <div className="logo w-7 object-contain rounded-4xl">
-                                                    <FileIcon extension={e.name.split(".")[1]} {...defaultStyles.docx} />
-                                                   
+                                                    <FileIcon
+                                                        extension={e.name.split(".").pop() || "txt"}
+                                                        {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                        color="#EAEAEA"
+                                                        fold={true}
+                                                        foldColor="#C0C0C0"
+                                                        glyphColor="#2563EB"
+                                                        gradientColor="#FFFFFF"
+                                                        gradientOpacity={0.7}
+                                                        labelColor="#EF4444"
+                                                        labelTextColor="#FFFFFF"
+                                                        radius={8}
+
+                                                    />
+
                                                 </div>
                                             </div>
                                             <div className='flex flex-col gap-8 items-end'>
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width={30}
-                                                    height={30}
-                                                    fill="none"
-                                                    className="injected-svg cursor-pointer"
-                                                    color="black"
-                                                    data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        stroke="black"
-                                                        strokeWidth={1.5}
-                                                        d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
-                                                    />
-                                                </svg>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger>
+
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width={30}
+                                                            height={30}
+                                                            fill="none"
+                                                            className="injected-svg cursor-pointer"
+                                                            color="black"
+                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke="black"
+                                                                strokeWidth={1.5}
+                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                            />
+                                                        </svg>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("renameid", e.$id)
+                                                            setrenamedialog(true)
+                                                            setRenameinp(e.name)
+                                                        }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            ()=>{
+                                                            setDet(e)
+                                                            setDetails(true)
+                                                            }
+                                                        } className="py-2">
+                                                            <img src="/Drop-Down/Details.png" alt="Details" />
+                                                            Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={
+                                                            () => {
+                                                                console.log("do");
+                                                                const result = storage.getFileDownload(
+                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                    e.$id
+                                                                )
+                                                                window.location.href = result
+                                                            }
+                                                        } data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Download.png" alt="Download" />
+                                                            Download
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem onClick={() => {
+                                                            sessionStorage.setItem("moveid", e.$id)
+                                                            setdeletedialog(true)
+                                                        }} data-id={e.$id} className="py-2">
+                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                            Move to Trash
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                                 <span>{formatFileSize(e.sizeOriginal)}</span>
                                             </div>
                                         </div>
@@ -518,6 +622,145 @@ const User = () => {
 
                 </DialogContent>
             </Dialog>
+            <Dialog open={renamedialog} onopenchange={setrenamedialog}>
+                <DialogContent className="w-80 rounded-3xl h-64" >
+                    <DialogHeader className="w-full">
+                        <DialogTitle className="text-center">Rename</DialogTitle>
+
+                    </DialogHeader>
+                    <DialogDescription className="flex flex-col gap-5">
+                        <input onChange={(e) => { setRenameinp(e.target.value) }} value={renameinp} className=' w-full px-4 py-4 rounded-full shadow-2xl outline-none text-black' type="text" />
+                        <Button onClick={handlerename} className="flex items-center bg-[#fa7275] w-full px-8 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">Save</Button>
+                    </DialogDescription>
+                    <button onClick={() => { setrenamedialog(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={15}
+                            height={15}
+                            fill="none"
+                            className="injected-svg"
+                            color="black"
+                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="black"
+                                fillRule="evenodd"
+                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </button>
+
+
+                    <DialogFooter className="block text-center text-sm text-[#fa7275]">Don't edit file extension</DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={deletedialog} onopenchange={setdeletedialog}>
+                <DialogContent className="w-1/4 rounded-3xl " >
+                    <DialogHeader className="w-full">
+                        <DialogTitle className="text-center">Move to Trash</DialogTitle>
+
+                    </DialogHeader>
+                    <DialogDescription className="flex flex-col gap-5 my-3">
+                        <span className='text-black text-base text-center'>
+                            Do You really want to delete this file ?
+                        </span>
+                        <span className='flex w-full justify-around items-center'>
+
+                            <Button onClick={() => { setdeletedialog(false) }} className="flex items-center border-none outline-none shadow-none bg-transparent text-black cursor-pointer text-lg hover:bg-transparent">cancel</Button>
+                            <Button onClick={handledeletefile} className="flex items-center bg-[#fa7275] w-fit px-8 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">Move</Button>
+                        </span>
+                    </DialogDescription>
+                    <button onClick={() => { setdeletedialog(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={15}
+                            height={15}
+                            fill="none"
+                            className="injected-svg"
+                            color="black"
+                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="black"
+                                fillRule="evenodd"
+                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </button>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={Details} onopenchange={setDetails}>
+                <DialogContent className="w-1/4 rounded-3xl " >
+                    <DialogHeader className="w-full">
+                        <DialogTitle className="text-center">Details</DialogTitle>
+
+                    </DialogHeader>
+                    <DialogDescription className="flex flex-col gap-5 my-3">
+                        <span className='flex items-center border-1 px-4 py-3 gap-5 rounded-2xl'>
+                            <span className="w-10 object-contain rounded-4xl">
+
+                                <FileIcon
+                                    extension={Det.name?Det.name.split(".").pop():"txt"}
+                                    {...defaultStyles[Det.name?Det.name.split(".").pop():"txt"]}
+                                    color="#EAEAEA"
+                                    fold={true}
+                                    foldColor="#C0C0C0"
+                                    glyphColor="#2563EB"
+                                    gradientColor="#FFFFFF"
+                                    gradientOpacity={0.7}
+                                    labelColor="#EF4444"
+                                    labelTextColor="#FFFFFF"
+                                    radius={8}
+
+                                />
+                            </span>
+                            <span className='flex flex-col gap-2'>
+                                <span className='font-semibold text-black'>{Det.name}</span>
+                                <span>{formatDate(Det.$updatedAt)} </span>
+                            </span>
+                        </span>
+                        <span className='flex flex-row  gap-10 my-5'>
+                            <span className='flex flex-col gap-3'>
+                                <span>Format:</span>
+                                <span>Dimension:</span>
+                                <span>Last modified:</span>
+                            </span>
+                            <span className='flex gap-3 flex-col'>
+                                <span className='text-black font-semibold'>{Det.name?Det.name.split(".").pop():""}</span>
+                                <span className='text-black font-semibold'>{formatFileSize(Det.sizeOriginal)}</span>
+                                <span className='text-black font-semibold'>{formatDate(Det.$updatedAt)}</span>
+                            </span>
+                           
+                           
+                        </span>
+                    </DialogDescription>
+                    <button onClick={() => { setDetails(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={15}
+                            height={15}
+                            fill="none"
+                            className="injected-svg"
+                            color="black"
+                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                fill="black"
+                                fillRule="evenodd"
+                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                    </button>
+                </DialogContent>
+            </Dialog>
+
         </div>
 
     )

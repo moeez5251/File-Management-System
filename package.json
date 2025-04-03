@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+    "file-icons-js": "github:websemantics/file-icons-js",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.482.0",
     "next": "15.2.2",
