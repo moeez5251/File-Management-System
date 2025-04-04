@@ -78,9 +78,9 @@ const Login = () => {
 
     }
     return (
-        <div className='h-[100vh] flex overflow-hidden'>
+        <div className='h-[100vh] flex flex-col items-center sm:flex-row sm:overflow-hidden'>
             <Toaster />
-            <div className='bg-[#fa7275] w-1/2 h-full flex  justify-end flex-col items-center gap-16'>
+            <div className='bg-[#fa7275] w-full sm:w-1/2 py-3 h-full flex justify-end flex-col items-center gap-16'>
                 <Image src="/logo.png" width={170} height={170} alt='Store It logo' />
                 <div className='w-4/5 mx-auto text-white flex flex-col gap-6'>
 
@@ -90,7 +90,7 @@ const Login = () => {
 
                 <Image src="/Dashboard.png" width={250} height={250} alt='Store It image' />
             </div>
-            <div className='flex items-start px-12 relative top-10  justify-center flex-col w-1/2 gap-10 '>
+            <div className='flex items-start px-12 relative top-10  justify-center flex-col w-full sm:w-1/2 gap-10 '>
                 <h1 className='font-bold text-5xl text-gray-800'>Login</h1>
                 <div className='w-[95%] shadow-2xl shadow-changer  flex flex-col gap-4 px-4 py-4 rounded-2xl'>
                     <Label htmlFor="email">Email</Label>

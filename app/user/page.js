@@ -63,17 +63,6 @@ const User = () => {
         size: "0 B",
         lastupdated: ""
     })
-    useEffect(() => {
-        (async function name() {
-            const accountin = await account.get()
-            localStorage.setItem("accountid", accountin.$id)
-            setaccountinfo(accountin)
-        }
-            ())
-        return () => {
-
-        }
-    }, [])
     const handleclick = () => {
         setopening(true)
     }
@@ -269,13 +258,22 @@ const User = () => {
 
         }
     }, [docfiles, imagefiles, mediafiles, other])
-
+    const handlesidebar = () => {
+        document.querySelector(".sidebar").classList.toggle("left-0");
+    }
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
         if (!cookieFallback || cookieFallback === '[]') {
             router.replace("/login");
         } else {
             setIsValid(true);
+            (async function name() {
+            const accountin = await account.get()
+            console.log(accountin);
+            localStorage.setItem("accountid", accountin.$id)
+            setaccountinfo(accountin)
+        }
+            ())
         }
     }, [router]);
 
@@ -284,11 +282,11 @@ const User = () => {
     return (
         <div className='h-[100vh] '>
             <Toaster />
-            <div className='flex items-center  justify-between mx-16 mt-5'>
-                <img className='w-42 ' src="/User.png" alt="" />
+            <div className='flex items-center justify-between mx-3 md:mx-16 mt-5'>
+                <img className='w-34 md:w-42 ' src="/User.png" alt="" />
                 <div className='flex items-center gap-5'>
 
-                    <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-10 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+                    <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
                         <div>
 
                             <svg
@@ -352,9 +350,9 @@ const User = () => {
                 </div>
 
             </div>
-            <Tabs defaultValue="dashboard" className="h-full w-[94%]   relative top-4  mt-6 mx-6  flex items-start flex-row ">
-                <div className=' w-[25%]'>
-                    <TabsList className="flex flex-col gap-2 h-fit bg-transparent">
+            <Tabs defaultValue="dashboard" className="h-full w-[94%] relative top-4  mt-6 lg:mx-6  lg:flex lg:items-start block mx-auto flex-row ">
+                <div className='sidebar w-[25%] absolute -left-full z-50 transition-all lg:relative lg:left-0'>
+                    <TabsList className="flex flex-col gap-2 h-fit bg-white p-3 lg:bg-transparent">
 
                         <TabsTrigger onClick={handlefilegetting}
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
@@ -525,13 +523,13 @@ const User = () => {
 
                     </TabsList>
                 </div>
-                <div className='relative  w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
-                    <TabsContent className="flex p-8 gap-10 items-center flex-col justify-center" value="dashboard">
+                <div className='relative lg:w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
+                    <TabsContent className="flex p-5 md:p-8 gap-6 md:gap-10 items-center flex-col justify-center" value="dashboard">
                         <div className='rounded-3xl px-3'>
                             <CustomChart />
                         </div>
-                        <div className='grid grid-cols-2 gap-10'>
-                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
+                            <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{docfilesize.size.trim() === "" ? "0 B" : docfilesize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
@@ -539,7 +537,7 @@ const User = () => {
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
                                 <div className='w-full text-center my-5'>{docfilesize.lastupdated.trim() === "" ? "" : docfilesize.lastupdated}</div>
                             </div>
-                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                            <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{imgsize.size.trim() === "" ? "0 B" : imgsize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
@@ -547,7 +545,7 @@ const User = () => {
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
                                 <div className='w-full text-center my-5'>{imgsize.lastupdated.trim() === "" ? "" : imgsize.lastupdated}</div>
                             </div>
-                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                            <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{mediasize.size.trim() === "" ? "0 B" : mediasize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
@@ -555,7 +553,7 @@ const User = () => {
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
                                 <div className='w-full text-center my-5'>{mediasize.lastupdated.trim() === "" ? "" : mediasize.lastupdated}</div>
                             </div>
-                            <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
+                            <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{othersize.size.trim() === "" ? "0 B" : othersize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
@@ -565,487 +563,1029 @@ const User = () => {
                             </div>
                         </div>
                     </TabsContent>
-                    <TabsContent className="p-8" value="documents">
-                        <Tabs>
+                    <TabsContent className="p-5 md:p-8" value="documents">
+                        <Tabs defaultValue="grid">
+                            <div className='flex  items-center gap-2 md:gap-0 justify-between'>
+                                <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Documents</h1>
+                                <div className='block'>
+                                    <TabsList className="flex gap-5 bg-transparent" >
 
-                        <div className='flex  items-center justify-between'>
-                            <h1 className='font-bold text-4xl text-[#333f4e]'>Documents</h1>
-                            <div className='flex gap-5'>
-                                <div className='bg border p-2 rounded-lg cursor-pointer'>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width={24}
-                                        height={24}
-                                        fill="none"
-                                        className="injected-svg"
-                                        color="white"
-                                        data-src="https://cdn.hugeicons.com/icons/grid-view-bulk-rounded.svg"
-                                    >
-                                        <path
-                                            fill="white"
-                                            d="M18.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
-                                            opacity={0.4}
-                                        />
-                                        <path
-                                            fill="white"
-                                            d="M6.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.104 3.104 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074ZM18.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
-                                        />
-                                        <path
-                                            fill="white"
-                                            d="M6.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074Z"
-                                            opacity={0.4}
-                                        />
-                                    </svg>
+                                        <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
+
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className='size-6  fill-[#dcdfc8]'
+                                                data-src="https://cdn.hugeicons.com/icons/grid-view-bulk-rounded.svg"
+                                            >
+                                                <path
+                                                    d="M18.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                    opacity={0.4}
+                                                />
+                                                <path
+                                                    d="M6.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.104 3.104 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074ZM18.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                />
+                                                <path
+                                                    d="M6.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074Z"
+                                                    opacity={0.4}
+                                                />
+                                            </svg>
+
+                                        </TabsTrigger>
+                                        <TabsTrigger value="list" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5'>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className="size-6  fill-[#dcdfc8]"
+                                                data-src="https://cdn.hugeicons.com/icons/list-view-solid-standard.svg"
+                                            >
+                                                <path
+                                                    d="M2 4.75C2 3.784 2.784 3 3.75 3h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 5.75v-1ZM2 11.25c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1A1.75 1.75 0 0 1 19.75 14h-16A1.75 1.75 0 0 1 2 12.25v-1ZM2 17.75c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 18.75v-1Z"
+                                                />
+                                            </svg>
+                                        </TabsTrigger>
+                                    </TabsList>
+
                                 </div>
-                                <div className='border p-2 rounded-lg cursor-pointer'>
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width={24}
-                                        height={24}
-                                        fill="none"
-                                        className="injected-svg"
-                                        color="#fff"
-                                        data-src="https://cdn.hugeicons.com/icons/list-view-solid-standard.svg"
-                                    >
-                                        <path
-                                            fill="#fff"
-                                            d="M2 4.75C2 3.784 2.784 3 3.75 3h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 5.75v-1ZM2 11.25c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1A1.75 1.75 0 0 1 19.75 14h-16A1.75 1.75 0 0 1 2 12.25v-1ZM2 17.75c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 18.75v-1Z"
-                                        />
-                                    </svg>
-                                </div>
+                                <div className='font-bold text-sm text-right md:text-lg'>Total: <span>{docfilesize.size}</span> </div>
                             </div>
-                            <div className='font-bold text-lg'>Total: <span>{docfilesize.size}</span> </div>
-                        </div>
-                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
-                            {
-                                docfiles.map((e, key) =>
-                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
-                                        <div className='flex items-stretch justify-between'>
+                            <TabsContent value="grid" className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                                {
+                                    docfiles.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
 
-                                            <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
-                                                <div className="logo w-7 object-contain rounded-4xl">
-                                                    <FileIcon
-                                                        extension={e.name.split(".").pop() || "txt"}
-                                                        {...defaultStyles[e.name.split(".").pop() || "txt"]}
-                                                        color="#EAEAEA"
-                                                        fold={true}
-                                                        foldColor="#C0C0C0"
-                                                        glyphColor="#2563EB"
-                                                        gradientColor="#FFFFFF"
-                                                        gradientOpacity={0.7}
-                                                        labelColor="#EF4444"
-                                                        labelTextColor="#FFFFFF"
-                                                        radius={8}
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#EAEAEA"
+                                                            fold={true}
+                                                            foldColor="#C0C0C0"
+                                                            glyphColor="#2563EB"
+                                                            gradientColor="#FFFFFF"
+                                                            gradientOpacity={0.7}
+                                                            labelColor="#EF4444"
+                                                            labelTextColor="#FFFFFF"
+                                                            radius={8}
 
-                                                    />
+                                                        />
 
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
                                                 </div>
                                             </div>
-                                            <div className='flex flex-col gap-8 items-end'>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger>
-
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width={30}
-                                                            height={30}
-                                                            fill="none"
-                                                            className="injected-svg cursor-pointer"
-                                                            color="black"
-                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke="black"
-                                                                strokeWidth={1.5}
-                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
-                                                            />
-                                                        </svg>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
-                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("renameid", e.$id)
-                                                            setrenamedialog(true)
-                                                            setRenameinp(e.name)
-                                                        }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                setDet(e)
-                                                                setDetails(true)
-                                                            }
-                                                        } className="py-2">
-                                                            <img src="/Drop-Down/Details.png" alt="Details" />
-                                                            Details
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                console.log("do");
-                                                                const result = storage.getFileDownload(
-                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                    e.$id
-                                                                )
-                                                                window.location.href = result
-                                                            }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Download.png" alt="Download" />
-                                                            Download
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("moveid", e.$id)
-                                                            setdeletedialog(true)
-                                                        }} data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                                            Move to Trash
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                                <span>{formatFileSize(e.sizeOriginal)}</span>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
                                             </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                         </div>
-                                        <div
-                                            className='font-semibold mt-4'>
-                                            {e.name}
+                                    )
+
+
+                                }
+
+                            </TabsContent>
+                            <TabsContent value="list" className='mt-8 grid grid-cols-[repeat(1,1fr)]  gap-y-10 gap-x-8'>
+                                {
+                                    docfiles.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
+
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#EAEAEA"
+                                                            fold={true}
+                                                            foldColor="#C0C0C0"
+                                                            glyphColor="#2563EB"
+                                                            gradientColor="#FFFFFF"
+                                                            gradientOpacity={0.7}
+                                                            labelColor="#EF4444"
+                                                            labelTextColor="#FFFFFF"
+                                                            radius={8}
+
+                                                        />
+
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
+                                            </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                         </div>
-                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
-                                    </div>
-                                )
+                                    )
 
 
-                            }
+                                }
 
-                        </div>
+                            </TabsContent>
                         </Tabs>
 
                     </TabsContent>
-                    <TabsContent className="p-8" value="Images">
-                        <div className='flex  items-center justify-between'>
-                            <h1 className='font-bold text-4xl text-[#333f4e]'>Images</h1>
-                            <div className='font-bold text-lg'>Total: <span>{imgsize.size}</span> </div>
-                        </div>
-                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
-                            {
-                                imagefiles.map((e, key) =>
-                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
-                                        <div className='flex items-stretch justify-between'>
+                    <TabsContent className="p-5 md:p-8" value="Images">
+                        <Tabs defaultValue="grid">
+                            <div className='flex  items-center justify-between'>
+                                <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Images</h1>
+                                <div className='block'>
+                                    <TabsList className="flex gap-5 bg-transparent" >
 
+                                        <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
-                                            <div className="logo w-16 h-16 object-contain">
-                                                <img
-                                                    src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
-                                                    alt="File Preview"
-                                                    className="w-full h-full rounded-full"
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className='size-6  fill-[#dcdfc8]'
+                                                data-src="https://cdn.hugeicons.com/icons/grid-view-bulk-rounded.svg"
+                                            >
+                                                <path
+                                                    d="M18.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                    opacity={0.4}
                                                 />
+                                                <path
+                                                    d="M6.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.104 3.104 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074ZM18.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                />
+                                                <path
+                                                    d="M6.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074Z"
+                                                    opacity={0.4}
+                                                />
+                                            </svg>
+
+                                        </TabsTrigger>
+                                        <TabsTrigger value="list" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5'>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className="size-6  fill-[#dcdfc8]"
+                                                data-src="https://cdn.hugeicons.com/icons/list-view-solid-standard.svg"
+                                            >
+                                                <path
+                                                    d="M2 4.75C2 3.784 2.784 3 3.75 3h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 5.75v-1ZM2 11.25c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1A1.75 1.75 0 0 1 19.75 14h-16A1.75 1.75 0 0 1 2 12.25v-1ZM2 17.75c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 18.75v-1Z"
+                                                />
+                                            </svg>
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                </div>
+                                <div className='font-bold text-sm text-right md:text-lg'>Total: <span>{imgsize.size}</span> </div>
+                            </div>
+                            <TabsContent value="grid" className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                                {
+                                    imagefiles.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
 
 
-                                            </div>
-                                            <div className='flex flex-col gap-8 items-end'>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger>
-
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width={30}
-                                                            height={30}
-                                                            fill="none"
-                                                            className="injected-svg cursor-pointer"
-                                                            color="black"
-                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke="black"
-                                                                strokeWidth={1.5}
-                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
-                                                            />
-                                                        </svg>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
-                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("renameid", e.$id)
-                                                            setrenamedialog(true)
-                                                            setRenameinp(e.name)
-                                                        }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                setDet(e)
-                                                                setDetails(true)
-                                                            }
-                                                        } className="py-2">
-                                                            <img src="/Drop-Down/Details.png" alt="Details" />
-                                                            Details
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                console.log("do");
-                                                                const result = storage.getFileDownload(
-                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                    e.$id
-                                                                )
-                                                                window.location.href = result
-                                                            }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Download.png" alt="Download" />
-                                                            Download
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("moveid", e.$id)
-                                                            setdeletedialog(true)
-                                                        }} data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                                            Move to Trash
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                                <span>{formatFileSize(e.sizeOriginal)}</span>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className='font-semibold mt-4'>
-                                            {e.name}
-                                        </div>
-                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
-                                    </div>
-                                )
-
-
-                            }
-
-                        </div>
-
-                    </TabsContent>
-                    <TabsContent className="p-8" value="Media">
-                        <div className='flex  items-center justify-between'>
-                            <h1 className='font-bold text-4xl text-[#333f4e]'>Media</h1>
-                            <div className='font-bold text-lg'>Total: <span>{mediasize.size}</span> </div>
-                        </div>
-                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
-                            {
-                                mediafiles.map((e, key) =>
-                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
-                                        <div className='flex items-stretch justify-between'>
-
-                                            <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
-                                                <div className="logo w-7 object-contain rounded-4xl">
-                                                    <FileIcon
-                                                        extension={e.name.split(".").pop() || "txt"}
-                                                        {...defaultStyles[e.name.split(".").pop() || "txt"]}
-                                                        color="#EAEAEA"
-                                                        fold={true}
-                                                        foldColor="#C0C0C0"
-                                                        glyphColor="#2563EB"
-                                                        gradientColor="#FFFFFF"
-                                                        gradientOpacity={0.7}
-                                                        labelColor="#EF4444"
-                                                        labelTextColor="#FFFFFF"
-                                                        radius={8}
-
+                                                <div className="logo w-16 h-16 object-contain">
+                                                    <img
+                                                        src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                                                        alt="File Preview"
+                                                        className="w-full h-full rounded-full"
                                                     />
 
+
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
                                                 </div>
                                             </div>
-                                            <div className='flex flex-col gap-8 items-end'>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger>
-
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width={30}
-                                                            height={30}
-                                                            fill="none"
-                                                            className="injected-svg cursor-pointer"
-                                                            color="black"
-                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke="black"
-                                                                strokeWidth={1.5}
-                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
-                                                            />
-                                                        </svg>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
-                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("renameid", e.$id)
-                                                            setrenamedialog(true)
-                                                            setRenameinp(e.name)
-                                                        }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                setDet(e)
-                                                                setDetails(true)
-                                                            }
-                                                        } className="py-2">
-                                                            <img src="/Drop-Down/Details.png" alt="Details" />
-                                                            Details
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                console.log("do");
-                                                                const result = storage.getFileDownload(
-                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                    e.$id
-                                                                )
-                                                                window.location.href = result
-                                                            }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Download.png" alt="Download" />
-                                                            Download
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("moveid", e.$id)
-                                                            setdeletedialog(true)
-                                                        }} data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                                            Move to Trash
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                                <span>{formatFileSize(e.sizeOriginal)}</span>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
                                             </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                         </div>
-                                        <div
-                                            className='font-semibold mt-4'>
-                                            {e.name}
-                                        </div>
-                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
-                                    </div>
-                                )
+                                    )
 
 
-                            }
+                                }
 
-                        </div>
+                            </TabsContent>
+                            <TabsContent value="list" className='mt-8 grid grid-cols-[repeat(1,1fr)]  gap-y-10 gap-x-8'>
+                                {
+                                    imagefiles.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
 
-                    </TabsContent>
-                    <TabsContent className="p-8" value="Other">
-                        <div className='flex  items-center justify-between'>
-                            <h1 className='font-bold text-4xl text-[#333f4e]'>Others</h1>
-                            <div className='font-bold text-lg'>Total: <span>{othersize.size}</span> </div>
-                        </div>
-                        <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
-                            {
-                                other.map((e, key) =>
-                                    <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
-                                        <div className='flex items-stretch justify-between'>
 
-                                            <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
-                                                <div className="logo w-7 object-contain rounded-4xl">
-                                                    <FileIcon
-                                                        extension={e.name.split(".").pop() || "txt"}
-                                                        {...defaultStyles[e.name.split(".").pop() || "txt"]}
-                                                        color="#EAEAEA"
-                                                        fold={true}
-                                                        foldColor="#C0C0C0"
-                                                        glyphColor="#2563EB"
-                                                        gradientColor="#FFFFFF"
-                                                        gradientOpacity={0.7}
-                                                        labelColor="#EF4444"
-                                                        labelTextColor="#FFFFFF"
-                                                        radius={8}
-
+                                                <div className="logo w-14 h-14 object-contain">
+                                                    <img
+                                                        src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                                                        alt="File Preview"
+                                                        className="w-full h-full rounded-full"
                                                     />
 
+
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
                                                 </div>
                                             </div>
-                                            <div className='flex flex-col gap-8 items-end'>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger>
-
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width={30}
-                                                            height={30}
-                                                            fill="none"
-                                                            className="injected-svg cursor-pointer"
-                                                            color="black"
-                                                            data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                stroke="black"
-                                                                strokeWidth={1.5}
-                                                                d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
-                                                            />
-                                                        </svg>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
-                                                        <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("renameid", e.$id)
-                                                            setrenamedialog(true)
-                                                            setRenameinp(e.name)
-                                                        }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                setDet(e)
-                                                                setDetails(true)
-                                                            }
-                                                        } className="py-2">
-                                                            <img src="/Drop-Down/Details.png" alt="Details" />
-                                                            Details
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={
-                                                            () => {
-                                                                console.log("do");
-                                                                const result = storage.getFileDownload(
-                                                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                    e.$id
-                                                                )
-                                                                window.location.href = result
-                                                            }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Download.png" alt="Download" />
-                                                            Download
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("moveid", e.$id)
-                                                            setdeletedialog(true)
-                                                        }} data-id={e.$id} className="py-2">
-                                                            <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                                            Move to Trash
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                                <span>{formatFileSize(e.sizeOriginal)}</span>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
                                             </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                         </div>
-                                        <div
-                                            className='font-semibold mt-4'>
-                                            {e.name}
+                                    )
+
+
+                                }
+
+                            </TabsContent>
+                        </Tabs>
+                    </TabsContent>
+                    <TabsContent className="p-5 md:p-8" value="Media">
+                        <Tabs defaultValue="grid">
+                            <div className='flex  items-center justify-between'>
+                                <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Media</h1>
+                                <div className='block'>
+                                    <TabsList className="flex gap-5 bg-transparent" >
+
+                                        <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
+
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className='size-6  fill-[#dcdfc8]'
+                                                data-src="https://cdn.hugeicons.com/icons/grid-view-bulk-rounded.svg"
+                                            >
+                                                <path
+                                                    d="M18.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                    opacity={0.4}
+                                                />
+                                                <path
+                                                    d="M6.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.104 3.104 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074ZM18.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                />
+                                                <path
+                                                    d="M6.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074Z"
+                                                    opacity={0.4}
+                                                />
+                                            </svg>
+
+                                        </TabsTrigger>
+                                        <TabsTrigger value="list" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5'>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className="size-6  fill-[#dcdfc8]"
+                                                data-src="https://cdn.hugeicons.com/icons/list-view-solid-standard.svg"
+                                            >
+                                                <path
+                                                    d="M2 4.75C2 3.784 2.784 3 3.75 3h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 5.75v-1ZM2 11.25c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1A1.75 1.75 0 0 1 19.75 14h-16A1.75 1.75 0 0 1 2 12.25v-1ZM2 17.75c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 18.75v-1Z"
+                                                />
+                                            </svg>
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                </div>
+                                <div className='font-bold text-sm text-right md:text-lg'>Total: <span>{mediasize.size}</span> </div>
+                            </div>
+                            <TabsContent value="grid" className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                                {
+                                    mediafiles.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
+
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#EAEAEA"
+                                                            fold={true}
+                                                            foldColor="#C0C0C0"
+                                                            glyphColor="#2563EB"
+                                                            gradientColor="#FFFFFF"
+                                                            gradientOpacity={0.7}
+                                                            labelColor="#EF4444"
+                                                            labelTextColor="#FFFFFF"
+                                                            radius={8}
+
+                                                        />
+
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
+                                            </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                         </div>
-                                        <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
-                                    </div>
-                                )
+                                    )
 
 
-                            }
+                                }
 
-                        </div>
+                            </TabsContent>
+                            <TabsContent value="list" className='mt-8 grid grid-cols-[repeat(1,1fr)]  gap-y-10 gap-x-8'>
+                                {
+                                    mediafiles.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
 
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#EAEAEA"
+                                                            fold={true}
+                                                            foldColor="#C0C0C0"
+                                                            glyphColor="#2563EB"
+                                                            gradientColor="#FFFFFF"
+                                                            gradientOpacity={0.7}
+                                                            labelColor="#EF4444"
+                                                            labelTextColor="#FFFFFF"
+                                                            radius={8}
+
+                                                        />
+
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
+                                            </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                        </div>
+                                    )
+
+
+                                }
+
+                            </TabsContent>
+                        </Tabs>
+
+                    </TabsContent>
+                    <TabsContent className="p-5 md:p-8" value="Other">
+                        <Tabs defaultValue="grid">
+                            <div className='flex  items-center justify-between'>
+                                <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Others</h1>
+                                <div className='block'>
+                                    <TabsList className="flex gap-5 bg-transparent" >
+
+                                        <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
+
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className='size-6  fill-[#dcdfc8]'
+                                                data-src="https://cdn.hugeicons.com/icons/grid-view-bulk-rounded.svg"
+                                            >
+                                                <path
+                                                    d="M18.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                    opacity={0.4}
+                                                />
+                                                <path
+                                                    d="M6.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.104 3.104 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074ZM18.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                                />
+                                                <path
+                                                    d="M6.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074Z"
+                                                    opacity={0.4}
+                                                />
+                                            </svg>
+
+                                        </TabsTrigger>
+                                        <TabsTrigger value="list" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5'>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width={24}
+                                                height={24}
+                                                fill="none"
+                                                className="size-6  fill-[#dcdfc8]"
+                                                data-src="https://cdn.hugeicons.com/icons/list-view-solid-standard.svg"
+                                            >
+                                                <path
+                                                    d="M2 4.75C2 3.784 2.784 3 3.75 3h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 5.75v-1ZM2 11.25c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1A1.75 1.75 0 0 1 19.75 14h-16A1.75 1.75 0 0 1 2 12.25v-1ZM2 17.75c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 18.75v-1Z"
+                                                />
+                                            </svg>
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                </div>
+                                <div className='font-bold text-sm text-right md:text-lg'>Total: <span>{othersize.size}</span> </div>
+                            </div>
+                            <TabsContent value="grid" className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
+                                {
+                                    other.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
+
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#EAEAEA"
+                                                            fold={true}
+                                                            foldColor="#C0C0C0"
+                                                            glyphColor="#2563EB"
+                                                            gradientColor="#FFFFFF"
+                                                            gradientOpacity={0.7}
+                                                            labelColor="#EF4444"
+                                                            labelTextColor="#FFFFFF"
+                                                            radius={8}
+
+                                                        />
+
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
+                                            </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                        </div>
+                                    )
+
+
+                                }
+
+                            </TabsContent>
+                            <TabsContent value="list" className='mt-8 grid grid-cols-[repeat(1,1fr)]  gap-y-10 gap-x-8'>
+                                {
+                                    other.map((e, key) =>
+                                        <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
+                                            <div className='flex items-stretch justify-between'>
+
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#EAEAEA"
+                                                            fold={true}
+                                                            foldColor="#C0C0C0"
+                                                            glyphColor="#2563EB"
+                                                            gradientColor="#FFFFFF"
+                                                            gradientOpacity={0.7}
+                                                            labelColor="#EF4444"
+                                                            labelTextColor="#FFFFFF"
+                                                            radius={8}
+
+                                                        />
+
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    setDet(e)
+                                                                    setDetails(true)
+                                                                }
+                                                            } className="py-2">
+                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+                                                                    console.log("do");
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
+                                            </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                        </div>
+                                    )
+
+
+                                }
+
+                            </TabsContent>
+                        </Tabs>
                     </TabsContent>
                 </div>
             </Tabs>
@@ -1130,7 +1670,7 @@ const User = () => {
                 </DialogContent>
             </Dialog>
             <Dialog open={deletedialog} onopenchange={setdeletedialog}>
-                <DialogContent className="w-1/4 rounded-3xl " >
+                <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
                     <DialogHeader className="w-full">
                         <DialogTitle className="text-center">Move to Trash</DialogTitle>
 
@@ -1168,7 +1708,7 @@ const User = () => {
             </Dialog>
 
             <Dialog open={Details} onopenchange={setDetails}>
-                <DialogContent className="w-1/4 rounded-3xl " >
+                <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
                     <DialogHeader className="w-full">
                         <DialogTitle className="text-center">Details</DialogTitle>
 
@@ -1234,10 +1774,10 @@ const User = () => {
                 </DialogContent>
             </Dialog>
             <Dialog open={upload} onopenchange={setupload}>
-                <DialogContent className="w-80 rounded-3xl h-16 fixed left-[85%] top-[88%] overflow-hidden" >
+                <DialogContent className="w-60 lg:w-80 rounded-3xl h-16 fixed left-[70%] md:left-[85%] top-[88%] overflow-hidden" >
                     <DialogHeader className="w-full">
                         <DialogTitle className="text-base font-semibold top-0">Uploading...</DialogTitle>
-                        <span className='w-full h-0.5 bg-red-800 absolute bottom-0.5 left-0 animate-line'></span>
+                        <span className='w-full h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0 animate-line'></span>
                     </DialogHeader>
                     <DialogDescription className="top-0">
                     </DialogDescription>
@@ -1262,6 +1802,25 @@ const User = () => {
                     </button>
                 </DialogContent>
             </Dialog>
+            <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={24}
+                    height={24}
+                    fill="none"
+                    className="injected-svg"
+                    color="#fff"
+                    data-src="https://cdn.hugeicons.com/icons/circle-arrow-left-02-solid-sharp.svg"
+                >
+                    <path
+                        fill="#fff"
+                        fillRule="evenodd"
+                        d="M12 1.25c5.937 0 10.75 4.813 10.75 10.75S17.937 22.75 12 22.75 1.25 17.937 1.25 12 6.063 1.25 12 1.25Zm-1 14.28L7.47 12 11 8.468l1.06 1.06-1.72 1.72h6.19v1.5h-6.189l1.72 1.72-1.06 1.06Z"
+                        clipRule="evenodd"
+                    />
+                </svg>
+
+            </div>
         </div>
 
     )

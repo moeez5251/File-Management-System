@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+**Project README** 📄
+================
 
-## Getting Started
+**Introduction** 🤔
+---------------
 
-First, run the development server:
+This project is a web application built using Next.js, React, and Appwrite 🚀. It provides a user interface for managing files and storage usage 📁.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Features** 🎉
+------------
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* File management: Users can upload, download, and manage their files 📈.
+* Storage usage tracking: The application tracks the storage usage of each user and displays it in a chart 📊.
+* User authentication: Users can sign up and log in to access their files and storage usage information 🔒.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**Technical Details** 💻
+--------------------
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* Frontend: Built using Next.js, React, and Tailwind CSS 🎨.
+* Backend: Uses Appwrite for user authentication, file storage, and storage usage tracking 📈.
+* Dependencies: Listed in `package.json` 📝.
 
-## Learn More
+**Components** 🧩
+--------------
 
-To learn more about Next.js, take a look at the following resources:
+* `components/ui`: Contains React components for the user interface, including buttons, cards, charts, and more 📈.
+* `components/ui/chart`: A chart component for displaying storage usage information 📊.
+* `components/ui/dialog`: A dialog component for displaying alerts and confirmations 📣.
+* `components/ui/input`: An input component for user input 📝.
+* `components/ui/input-otp`: An OTP input component for user authentication 🔒.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Pages** 📄
+---------
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* `app/page.js`: The main application page 🏠.
+* `app/user/page.js`: The user dashboard page 📊.
+* `app/signup/page.js`: The sign-up page 📝.
+* `app/login/page.js`: The login page 🔒.
 
-## Deploy on Vercel
+**Hooks** 🔩
+---------
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* `hooks/use-mobile.js`: A hook for detecting mobile devices 📱.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Utilities** 🛠️
+-------------
+
+* `lib/utils.js`: Contains utility functions for the application 📝.
+
+**Setup** 🚀
+--------
+
+1. Clone the repository 📁.
+2. Install dependencies using `npm install` or `yarn install` 📦.
+3. Start the development server using `npm run dev` or `yarn dev` 🚀.
+4. Open the application in your web browser 📊.
+
+**Contributing** 🤝
+------------
+
+Contributions are welcome! Please submit a pull request with your changes 📈.
+
+**License** 📜
+-------
+
+This project is licensed under the MIT License 📜.
