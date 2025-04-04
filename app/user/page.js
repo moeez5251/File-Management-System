@@ -66,6 +66,7 @@ const User = () => {
     useEffect(() => {
         (async function name() {
             const accountin = await account.get()
+            localStorage.setItem("accountid", accountin.$id)
             setaccountinfo(accountin)
         }
             ())
@@ -165,15 +166,14 @@ const User = () => {
             const filteredmediafiles = response.files.filter(file => mediaMimeTypes.includes(file.mimeType))
             setmediafiles(
                 filteredmediafiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
-                
+
             )
             const otherFiles = response.files.filter(file => {
                 return !documentMimeTypes.includes(file.mimeType) &&
-                       !imageMimeTypes.includes(file.mimeType) &&
-                       !mediaMimeTypes.includes(file.mimeType);
-            });            
-            console.log(otherFiles);
-              setOther(otherFiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id));
+                    !imageMimeTypes.includes(file.mimeType) &&
+                    !mediaMimeTypes.includes(file.mimeType);
+            });
+            setOther(otherFiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id));
 
         } catch (error) {
             toast("Failed to get files")
@@ -230,7 +230,9 @@ const User = () => {
         }
     }, [file])
     useEffect(() => {
-        handlefilegetting()
+        if (docfiles.length === 0 && imagefiles.length === 0 && mediafiles.length === 0 && other.length === 0) {
+            handlefilegetting()
+        }
         if (docfiles.length > 0) {
             const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
             const lastupdated = docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
@@ -247,7 +249,7 @@ const User = () => {
                 lastupdated: formatDate(lastupdated)
             })
         }
-        if(mediafiles.length > 0){
+        if (mediafiles.length > 0) {
             const totalsize = mediafiles.reduce((total, file) => total + file.sizeOriginal, 0);
             const lastupdated = mediafiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
             setMediasize({
@@ -255,7 +257,7 @@ const User = () => {
                 lastupdated: formatDate(lastupdated)
             })
         }
-        if(other.length > 0){
+        if (other.length > 0) {
             const totalsize = other.reduce((total, file) => total + file.sizeOriginal, 0);
             const lastupdated = other.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
             setothersize({
@@ -266,7 +268,7 @@ const User = () => {
         return () => {
 
         }
-    }, [docfiles, imagefiles,mediafiles,other])
+    }, [docfiles, imagefiles, mediafiles, other])
 
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
@@ -354,7 +356,7 @@ const User = () => {
                 <div className=' w-[25%]'>
                     <TabsList className="flex flex-col gap-2 h-fit bg-transparent">
 
-                        <TabsTrigger
+                        <TabsTrigger onClick={handlefilegetting}
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -531,41 +533,87 @@ const User = () => {
                         <div className='grid grid-cols-2 gap-10'>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>{ docfilesize.size.trim()===""?"0 B": docfilesize.size}</span>
+                                <span className='absolute top-4 right-4'>{docfilesize.size.trim() === "" ? "0 B" : docfilesize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>{ docfilesize.lastupdated.trim()===""?"":docfilesize.lastupdated}</div>
+                                <div className='w-full text-center my-5'>{docfilesize.lastupdated.trim() === "" ? "" : docfilesize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>{imgsize.size.trim()===""?"0 B": imgsize.size}</span>
+                                <span className='absolute top-4 right-4'>{imgsize.size.trim() === "" ? "0 B" : imgsize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>{imgsize.lastupdated.trim()===""?"":imgsize.lastupdated}</div>
+                                <div className='w-full text-center my-5'>{imgsize.lastupdated.trim() === "" ? "" : imgsize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>{ mediasize.size.trim()===""?"0 B": mediasize.size}</span>
+                                <span className='absolute top-4 right-4'>{mediasize.size.trim() === "" ? "0 B" : mediasize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>{ mediasize.lastupdated.trim()===""?"":mediasize.lastupdated}</div>
+                                <div className='w-full text-center my-5'>{mediasize.lastupdated.trim() === "" ? "" : mediasize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-60 h-60 p-10 relative rounded-3xl'>
                                 <img className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
-                                <span className='absolute top-4 right-4'>{othersize.size.trim()===""?"0 B":othersize.size}</span>
+                                <span className='absolute top-4 right-4'>{othersize.size.trim() === "" ? "0 B" : othersize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
                                 <div className='w-full text-gray-400 text-center font-medium'>Last Update</div>
-                                <div className='w-full text-center my-5'>{ othersize.lastupdated.trim()===""?"":othersize.lastupdated}</div>
+                                <div className='w-full text-center my-5'>{othersize.lastupdated.trim() === "" ? "" : othersize.lastupdated}</div>
                             </div>
                         </div>
                     </TabsContent>
                     <TabsContent className="p-8" value="documents">
+                        <Tabs>
+
                         <div className='flex  items-center justify-between'>
                             <h1 className='font-bold text-4xl text-[#333f4e]'>Documents</h1>
+                            <div className='flex gap-5'>
+                                <div className='bg border p-2 rounded-lg cursor-pointer'>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width={24}
+                                        height={24}
+                                        fill="none"
+                                        className="injected-svg"
+                                        color="white"
+                                        data-src="https://cdn.hugeicons.com/icons/grid-view-bulk-rounded.svg"
+                                    >
+                                        <path
+                                            fill="white"
+                                            d="M18.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                            opacity={0.4}
+                                        />
+                                        <path
+                                            fill="white"
+                                            d="M6.037 1.25c.739 0 1.346 0 1.838.047.51.048.973.153 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.104 3.104 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.074c0-.739 0-1.346.047-1.838.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.257.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074ZM18.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.258-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.152-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.073Z"
+                                        />
+                                        <path
+                                            fill="white"
+                                            d="M6.037 13.25c.739 0 1.346 0 1.838.047.51.048.973.152 1.393.41.418.256.769.607 1.025 1.025.258.42.362.883.41 1.393.047.492.047 1.1.047 1.838v.074c0 .739 0 1.346-.047 1.838-.048.51-.152.973-.41 1.393a3.103 3.103 0 0 1-1.025 1.025c-.42.258-.883.362-1.393.41-.492.047-1.1.047-1.838.047h-.074c-.739 0-1.346 0-1.838-.047-.51-.048-.973-.152-1.393-.41a3.103 3.103 0 0 1-1.025-1.025c-.257-.42-.362-.883-.41-1.393-.047-.492-.047-1.1-.047-1.838v-.073c0-.74 0-1.347.047-1.839.048-.51.153-.973.41-1.393a3.103 3.103 0 0 1 1.025-1.025c.42-.258.883-.362 1.393-.41.492-.047 1.1-.047 1.838-.047h.074Z"
+                                            opacity={0.4}
+                                        />
+                                    </svg>
+                                </div>
+                                <div className='border p-2 rounded-lg cursor-pointer'>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width={24}
+                                        height={24}
+                                        fill="none"
+                                        className="injected-svg"
+                                        color="#fff"
+                                        data-src="https://cdn.hugeicons.com/icons/list-view-solid-standard.svg"
+                                    >
+                                        <path
+                                            fill="#fff"
+                                            d="M2 4.75C2 3.784 2.784 3 3.75 3h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 5.75v-1ZM2 11.25c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1A1.75 1.75 0 0 1 19.75 14h-16A1.75 1.75 0 0 1 2 12.25v-1ZM2 17.75c0-.966.784-1.75 1.75-1.75h16c.966 0 1.75.784 1.75 1.75v1a1.75 1.75 0 0 1-1.75 1.75h-16A1.75 1.75 0 0 1 2 18.75v-1Z"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
                             <div className='font-bold text-lg'>Total: <span>{docfilesize.size}</span> </div>
                         </div>
                         <div className='mt-8 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]  gap-y-10 gap-x-8'>
@@ -672,6 +720,7 @@ const User = () => {
                             }
 
                         </div>
+                        </Tabs>
 
                     </TabsContent>
                     <TabsContent className="p-8" value="Images">
@@ -685,13 +734,13 @@ const User = () => {
                                     <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                                         <div className='flex items-stretch justify-between'>
 
-                                           
-                                                <div className="logo w-16 h-16 object-contain">
-                                                        <img
-                                                        src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
-                                                        alt="File Preview"
-                                                        className="w-full h-full rounded-full"
-                                                    />
+
+                                            <div className="logo w-16 h-16 object-contain">
+                                                <img
+                                                    src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                                                    alt="File Preview"
+                                                    className="w-full h-full rounded-full"
+                                                />
 
 
                                             </div>
