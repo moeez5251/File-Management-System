@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { Client, Account, ID } from 'appwrite';
 import {
     InputOTP,
@@ -77,6 +77,16 @@ const Login = () => {
         })
 
     }
+
+    useEffect(() => {
+        const cookieFallback = localStorage.getItem("cookieFallback");
+        if (cookieFallback !== '[]') {
+            router.replace("/user");
+        }
+        // Disable the exhaustive-deps warning
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router]);
+
     return (
         <div className='h-[100vh] flex flex-col items-center sm:flex-row sm:overflow-hidden'>
             <Toaster />

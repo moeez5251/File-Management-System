@@ -78,7 +78,7 @@ const User = () => {
     }
     const handlelogout = async () => {
         const a = await account.deleteSessions();
-        router.push("/login");
+        router.replace("/login");
     }
     function formatDate(isoString) {
         const date = new Date(isoString);
