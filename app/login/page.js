@@ -80,7 +80,7 @@ const Login = () => {
 
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
-        if (cookieFallback !== '[]') {
+        if (cookieFallback &&cookieFallback !== '[]') {
             router.replace("/user");
         }
         // Disable the exhaustive-deps warning
