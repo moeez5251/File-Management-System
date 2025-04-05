@@ -390,8 +390,8 @@ const User = () => {
         <div className='relative lg:w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
           <TabsContent className="flex p-5 md:p-8 gap-6 md:gap-10 items-center flex-col justify-center" value="dashboard">
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
-              <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
+            <div className='grid grid-cols-1 justify-items-center md:grid-cols-2 gap-10'>
+              <div className='bg-white w-76 md:w-60 h-60 p-10 relative rounded-3xl'>
                 <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{docfilesize.size.trim() === "" ? "0 B" : docfilesize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>

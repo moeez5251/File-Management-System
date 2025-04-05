@@ -45,7 +45,7 @@ const CustomChart = () => {
     const chartData = [{ name: "Used Space", value: percentage, fill: "#fff" }];
 
     return (
-        <Card className="flex flex-row bg-[#fa7275] items-center gap-3 md:gap-6 justify-center px-1 md:px-4 py-6 shadow-2xl">
+        <Card className="flex flex-row bg-[#fa7275] items-center gap-3 md:gap-6 justify-center px-1 md:px-4 py-6 shadow-2xlz">
             <CardContent className="flex-1 pb-0 bg-[#fa7275] flex items-center justify-center">
                 <div className="relative">
                     <RadialBarChart
