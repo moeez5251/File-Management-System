@@ -8,7 +8,7 @@ const poppins = Poppins({
 
 export const metadata = {
   title: "Store It",
-  description: "File Storage System for your files",
+  description: "A web application for managing files and storage usage.",
 };
 
 export default function RootLayout({ children }) {
