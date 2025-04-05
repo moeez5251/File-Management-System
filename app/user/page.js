@@ -291,7 +291,7 @@ const User = () => {
         <div className='h-[100vh] '>
             <Toaster />
             <div className='flex items-center justify-between mx-3 md:mx-16 mt-5'>
-                <Image priority width={100} height={100} className='w-34 md:w-42 ' src="/User.png"  alt="" />
+                <Image onClick={() => router.push("/")} priority width={100} height={100} className='w-34 md:w-42 cursor-pointer' src="/User.png" alt="" />
                 <div className='flex items-center gap-5'>
 
                     <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
