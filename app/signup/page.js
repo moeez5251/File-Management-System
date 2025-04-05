@@ -25,7 +25,10 @@ import { useRouter } from 'next/navigation'
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
 
-const signup = () => {
+const Signup = () => {
+    const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
+        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
+    const account = new Account(client);
     const [inputs, setinputs] = useState({
         name: "",
         email: ""
@@ -36,9 +39,6 @@ const signup = () => {
     const [otpvalue, setotpvalue] = useState("")
     const [userid, setuserid] = useState("")
     const router = useRouter()
-    const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-    const account = new Account(client);
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -123,7 +123,7 @@ const signup = () => {
                 <div className='w-4/5 mx-auto text-white flex flex-col gap-6'>
 
                     <h1 className='font-extrabold text-5xl '>Manage Your Files the best way</h1>
-                    <p className='text-lg'>Awesome, we've created the perfect place for you to store all your documents</p>
+                    <p className='text-lg'>Awesome, we&apos;ve created the perfect place for you to store all your documents</p>
                 </div>
 
                 <Image src="/Dashboard.png" width={250} height={250} alt='Store It image' />
@@ -211,7 +211,7 @@ const signup = () => {
                         }
                     </div>
 
-                    <DialogFooter className="text-center block my-3 ">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Click to resend.</span></DialogFooter>
+                    <DialogFooter className="text-center block my-3 ">Didn&apos;t receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Click to resend.</span></DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -219,4 +219,4 @@ const signup = () => {
     )
 }
 
-export default signup
+export default Signup

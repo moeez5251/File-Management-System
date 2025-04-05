@@ -85,7 +85,7 @@ const Login = () => {
                 <div className='w-4/5 mx-auto text-white flex flex-col gap-6'>
 
                     <h1 className='font-extrabold text-5xl '>Manage Your Files the best way</h1>
-                    <p className='text-lg'>Awesome, we've created the perfect place for you to store all your documents</p>
+                    <p className='text-lg'>Awesome, we &apos;ve created the perfect place for you to store all your documents</p>
                 </div>
 
                 <Image src="/Dashboard.png" width={250} height={250} alt='Store It image' />
@@ -118,7 +118,7 @@ const Login = () => {
                         <Loader2 className="animate-spin" />
                     </Button>
                 }
-                <div className='text-center w-full'>Don't have an account ? <Link className='text-[#fa7275]' href="/signup">Create Account</Link></div>
+                <div className='text-center w-full'>Don&apos;t have an account ? <Link className='text-[#fa7275]' href="/signup">Create Account</Link></div>
 
             </div>
             <Dialog open={opening} onopenchange={setopening}>
@@ -181,7 +181,7 @@ const Login = () => {
                         }
                     </div>
 
-                    <DialogFooter className="text-center block my-3 ">Didn't receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Click to resend.</span></DialogFooter>
+                    <DialogFooter className="text-center block my-3 ">Didn&apos;t receive code? <span onClick={handleclick} className='text-[#fa7275] cursor-pointer'>Click to resend.</span></DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

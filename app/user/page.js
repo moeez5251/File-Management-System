@@ -25,6 +25,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Image from 'next/image';
 const User = () => {
     const router = useRouter();
     const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
@@ -207,9 +208,9 @@ const User = () => {
             ).then(e => {
                 setupload(false)
                 toast("File uploaded successfully")
+                handlefilegetting()
                 setfile(null)
                 ref.current.value = ""
-                handlefilegetting()
             }).catch(e => {
                 toast("File upload failed")
             })
@@ -217,6 +218,8 @@ const User = () => {
         return () => {
 
         }
+        // Disable the exhaustive-deps warning
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [file])
     useEffect(() => {
         if (docfiles.length === 0 && imagefiles.length === 0 && mediafiles.length === 0 && other.length === 0) {
@@ -257,6 +260,8 @@ const User = () => {
         return () => {
 
         }
+        // Disable the exhaustive-deps warning
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [docfiles, imagefiles, mediafiles, other])
     const handlesidebar = () => {
         document.querySelector(".sidebar").classList.toggle("left-0");
@@ -268,13 +273,16 @@ const User = () => {
         } else {
             setIsValid(true);
             (async function name() {
-            const accountin = await account.get()
-            console.log(accountin);
-            localStorage.setItem("accountid", accountin.$id)
-            setaccountinfo(accountin)
+                const accountin = await account.get()
+                localStorage.setItem("accountid", accountin.$id)
+                setaccountinfo(accountin)
+            }
+                ())
         }
-            ())
+        return () => {
         }
+        // Disable the exhaustive-deps warning
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     if (!isValid) return null;
@@ -283,7 +291,7 @@ const User = () => {
         <div className='h-[100vh] '>
             <Toaster />
             <div className='flex items-center justify-between mx-3 md:mx-16 mt-5'>
-                <img className='w-34 md:w-42 ' src="/User.png" alt="" />
+                <Image width={100} height={100} className='w-34 md:w-42 ' src="/User.png" alt="" />
                 <div className='flex items-center gap-5'>
 
                     <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
@@ -354,7 +362,7 @@ const User = () => {
                 <div className='sidebar w-[25%] absolute -left-full z-50 transition-all lg:relative lg:left-0'>
                     <TabsList className="flex flex-col gap-2 h-fit bg-white p-3 lg:bg-transparent">
 
-                        <TabsTrigger onClick={handlefilegetting}
+                        <TabsTrigger
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -374,7 +382,7 @@ const User = () => {
                                 />
                             </svg>  Dashboard
                         </TabsTrigger>
-                        <TabsTrigger onClick={handlefilegetting}
+                        <TabsTrigger
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -415,7 +423,7 @@ const User = () => {
                                 />
                             </svg> Documents
                         </TabsTrigger>
-                        <TabsTrigger onClick={handlefilegetting}
+                        <TabsTrigger
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Images" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -454,7 +462,7 @@ const User = () => {
                                 />
                             </svg>  Images
                         </TabsTrigger>
-                        <TabsTrigger onClick={handlefilegetting}
+                        <TabsTrigger
                             className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Media" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -487,7 +495,7 @@ const User = () => {
                             </svg>Media
                         </TabsTrigger>
                         <TabsTrigger
-                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" onClick={handlefilegetting} value="Other" >
+                            className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Other" >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 width={20}
@@ -518,7 +526,7 @@ const User = () => {
                             </svg> Others
                         </TabsTrigger>
                         <div className='w-[90%]' >
-                            <img className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
+                            <Image width={100} height={100} className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
                         </div>
 
                     </TabsList>
@@ -530,7 +538,7 @@ const User = () => {
                         </div>
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
                             <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                                <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
+                                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{docfilesize.size.trim() === "" ? "0 B" : docfilesize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -538,7 +546,7 @@ const User = () => {
                                 <div className='w-full text-center my-5'>{docfilesize.lastupdated.trim() === "" ? "" : docfilesize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                                <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
+                                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{imgsize.size.trim() === "" ? "0 B" : imgsize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -546,7 +554,7 @@ const User = () => {
                                 <div className='w-full text-center my-5'>{imgsize.lastupdated.trim() === "" ? "" : imgsize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                                <img className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
+                                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{mediasize.size.trim() === "" ? "0 B" : mediasize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -554,7 +562,7 @@ const User = () => {
                                 <div className='w-full text-center my-5'>{mediasize.lastupdated.trim() === "" ? "" : mediasize.lastupdated}</div>
                             </div>
                             <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                                <img className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
+                                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
                                 <span className='absolute top-4 right-4'>{othersize.size.trim() === "" ? "0 B" : othersize.size}</span>
                                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
                                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -568,7 +576,7 @@ const User = () => {
                             <div className='flex  items-center gap-2 md:gap-0 justify-between'>
                                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Documents</h1>
                                 <div className='block'>
-                                    <TabsList className="flex gap-5 bg-transparent" >
+                                    <TabsList className="sm:flex gap-5 bg-transparent hidden" >
 
                                         <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -667,7 +675,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -675,7 +683,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -689,7 +697,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -697,7 +705,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -771,7 +779,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -779,7 +787,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -793,7 +801,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -801,7 +809,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -829,7 +837,7 @@ const User = () => {
                             <div className='flex  items-center justify-between'>
                                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Images</h1>
                                 <div className='block'>
-                                    <TabsList className="flex gap-5 bg-transparent" >
+                                    <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                                         <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -882,7 +890,7 @@ const User = () => {
 
 
                                                 <div className="logo w-16 h-16 object-contain">
-                                                    <img
+                                                    <Image width={100} height={100}
                                                         src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
                                                         alt="File Preview"
                                                         className="w-full h-full rounded-full"
@@ -919,7 +927,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -927,7 +935,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -941,7 +949,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -949,7 +957,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -977,7 +985,7 @@ const User = () => {
 
 
                                                 <div className="logo w-14 h-14 object-contain">
-                                                    <img
+                                                    <Image width={100} height={100}
                                                         src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
                                                         alt="File Preview"
                                                         className="w-full h-full rounded-full"
@@ -1014,7 +1022,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -1022,7 +1030,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1036,7 +1044,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1044,7 +1052,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -1071,7 +1079,7 @@ const User = () => {
                             <div className='flex  items-center justify-between'>
                                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Media</h1>
                                 <div className='block'>
-                                    <TabsList className="flex gap-5 bg-transparent" >
+                                    <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                                         <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -1170,7 +1178,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -1178,7 +1186,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1192,7 +1200,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1200,7 +1208,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -1274,7 +1282,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -1282,7 +1290,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1296,7 +1304,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1304,7 +1312,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -1332,7 +1340,7 @@ const User = () => {
                             <div className='flex  items-center justify-between'>
                                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Others</h1>
                                 <div className='block'>
-                                    <TabsList className="flex gap-5 bg-transparent" >
+                                    <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                                         <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -1431,7 +1439,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -1439,7 +1447,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1453,7 +1461,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1461,7 +1469,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -1535,7 +1543,7 @@ const User = () => {
                                                                 setRenameinp(e.name)
                                                             }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                                                                <Image width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
@@ -1543,7 +1551,7 @@ const User = () => {
                                                                     setDetails(true)
                                                                 }
                                                             } className="py-2">
-                                                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                                                 Details
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1557,7 +1565,7 @@ const User = () => {
                                                                     window.location.href = result
                                                                 }
                                                             } data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -1565,7 +1573,7 @@ const User = () => {
                                                                 sessionStorage.setItem("moveid", e.$id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
-                                                                <img src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                <Image width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
                                                                 Move to Trash
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -1666,7 +1674,7 @@ const User = () => {
                     </button>
 
 
-                    <DialogFooter className="block text-center text-sm text-[#fa7275]">Don't edit file extension</DialogFooter>
+                    <DialogFooter className="block text-center text-sm text-[#fa7275]">Don&apos;t edit file extension</DialogFooter>
                 </DialogContent>
             </Dialog>
             <Dialog open={deletedialog} onopenchange={setdeletedialog}>

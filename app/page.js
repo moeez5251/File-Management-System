@@ -23,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import Image from 'next/image';
 const User = () => {
   const router = useRouter();
   const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
@@ -179,29 +180,33 @@ const User = () => {
     return () => {
 
     }
+    // Disable the exhaustive-deps warning
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docfiles, imagefiles, mediafiles, other])
   useEffect(() => {
-  
-       
-       client.subscribe("files",e=>{
-        handlefilegetting()
-       })
+    const unsubscribe = client.subscribe("files", (e) => {
+      handlefilegetting();
+    });
+
     return () => {
-      
-    }
-  }, [])
-  
+      unsubscribe();
+    };
+    // Disable the exhaustive-deps warning
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const handlesidebar = () => {
 
     document.querySelector(".sidebar").classList.toggle("left-0");
   }
 
-  
+
   return (
     <div className='h-[100vh] '>
       <Toaster />
       <div className='flex items-center justify-between mx-3 md:mx-16 mt-5'>
-        <img className='w-34 md:w-42 ' src="/User.png" alt="" />
+        <Image height={100} width={100} className='w-30 md:w-42 ' src="/User.png" alt="" />
         <div className='flex items-center gap-5'>
 
           <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
@@ -377,7 +382,7 @@ const User = () => {
               </svg> Others
             </TabsTrigger>
             <div className='w-[90%]' >
-              <img className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
+              <Image width={100} height={100} className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
             </div>
 
           </TabsList>
@@ -387,7 +392,7 @@ const User = () => {
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <img className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
+                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{docfilesize.size.trim() === "" ? "0 B" : docfilesize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -395,7 +400,7 @@ const User = () => {
                 <div className='w-full text-center my-5'>{docfilesize.lastupdated.trim() === "" ? "" : docfilesize.lastupdated}</div>
               </div>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <img className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
+                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{imgsize.size.trim() === "" ? "0 B" : imgsize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -403,7 +408,7 @@ const User = () => {
                 <div className='w-full text-center my-5'>{imgsize.lastupdated.trim() === "" ? "" : imgsize.lastupdated}</div>
               </div>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <img className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
+                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{mediasize.size.trim() === "" ? "0 B" : mediasize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -411,7 +416,7 @@ const User = () => {
                 <div className='w-full text-center my-5'>{mediasize.lastupdated.trim() === "" ? "" : mediasize.lastupdated}</div>
               </div>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <img className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
+                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{othersize.size.trim() === "" ? "0 B" : othersize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -425,7 +430,7 @@ const User = () => {
               <div className='flex  items-center gap-2 md:gap-0 justify-between'>
                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Documents</h1>
                 <div className='block'>
-                  <TabsList className="flex gap-5 bg-transparent" >
+                  <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                     <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -524,7 +529,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -538,7 +543,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
@@ -614,7 +619,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -628,7 +633,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -656,7 +661,7 @@ const User = () => {
               <div className='flex  items-center justify-between'>
                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Images</h1>
                 <div className='block'>
-                  <TabsList className="flex gap-5 bg-transparent" >
+                  <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                     <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -709,7 +714,9 @@ const User = () => {
 
 
                         <div className="logo w-16 h-16 object-contain">
-                          <img
+                          <Image
+                          width={100}
+                          height={100}
                             src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
@@ -746,7 +753,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -760,7 +767,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -788,8 +795,10 @@ const User = () => {
 
 
                         <div className="logo w-14 h-14 object-contain">
-                          <img
+                          <Image
                             src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                             width={100}
+                             height={100}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
                           />
@@ -825,7 +834,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -839,7 +848,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -866,7 +875,7 @@ const User = () => {
               <div className='flex  items-center justify-between'>
                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Media</h1>
                 <div className='block'>
-                  <TabsList className="flex gap-5 bg-transparent" >
+                  <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                     <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -966,7 +975,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -980,7 +989,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
@@ -1055,7 +1064,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -1069,7 +1078,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -1097,7 +1106,7 @@ const User = () => {
               <div className='flex  items-center justify-between'>
                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Others</h1>
                 <div className='block'>
-                  <TabsList className="flex gap-5 bg-transparent" >
+                  <TabsList className="sm:flex hidden gap-5 bg-transparent" >
 
                     <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -1197,7 +1206,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -1211,7 +1220,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
@@ -1287,7 +1296,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <img src="/Drop-Down/Details.png" alt="Details" />
+                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -1301,10 +1310,10 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <img src="/Drop-Down/Download.png" alt="Download" />
+                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-                             
+
                             </DropdownMenuContent>
                           </DropdownMenu>
                           <span>{formatFileSize(e.sizeOriginal)}</span>
@@ -1392,7 +1401,7 @@ const User = () => {
           </button>
         </DialogContent>
       </Dialog>
-      
+
       <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>
         <svg
           xmlns="http://www.w3.org/2000/svg"

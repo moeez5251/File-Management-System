@@ -1,6 +1,3 @@
-**Project README** 📄
-================
-
 **Introduction** 🤔
 ---------------
 
@@ -16,18 +13,9 @@ This project is a web application built using Next.js, React, and Appwrite 🚀.
 **Technical Details** 💻
 --------------------
 
-* Frontend: Built using Next.js, React, and Tailwind CSS 🎨.
+* Frontend: Built using Next.js, React, Tailwind CSS, and Shacn UI components 🎨.
 * Backend: Uses Appwrite for user authentication, file storage, and storage usage tracking 📈.
 * Dependencies: Listed in `package.json` 📝.
-
-**Components** 🧩
---------------
-
-* `components/ui`: Contains React components for the user interface, including buttons, cards, charts, and more 📈.
-* `components/ui/chart`: A chart component for displaying storage usage information 📊.
-* `components/ui/dialog`: A dialog component for displaying alerts and confirmations 📣.
-* `components/ui/input`: An input component for user input 📝.
-* `components/ui/input-otp`: An OTP input component for user authentication 🔒.
 
 **Pages** 📄
 ---------
