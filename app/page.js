@@ -206,7 +206,7 @@ const User = () => {
     <div className='h-[100vh] '>
       <Toaster />
       <div className='flex items-center justify-between mx-3 md:mx-16 mt-5'>
-        <Image height={100} width={100} className='w-30 md:w-42 ' src="/User.png" alt="" />
+        <Image priority height={100} width={100} className='w-30 md:w-42 ' src="/User.png" alt="" />
         <div className='flex items-center gap-5'>
 
           <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
@@ -382,7 +382,7 @@ const User = () => {
               </svg> Others
             </TabsTrigger>
             <div className='w-[90%]' >
-              <Image width={100} height={100} className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
+              <Image priority width={100} height={100} className='w-full h-full object-contain' src="/Dashboard.png" alt="Dashboard Image" />
             </div>
 
           </TabsList>
@@ -392,7 +392,7 @@ const User = () => {
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
+                <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{docfilesize.size.trim() === "" ? "0 B" : docfilesize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Documents</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -400,7 +400,7 @@ const User = () => {
                 <div className='w-full text-center my-5'>{docfilesize.lastupdated.trim() === "" ? "" : docfilesize.lastupdated}</div>
               </div>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
+                <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Image.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{imgsize.size.trim() === "" ? "0 B" : imgsize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Images</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -408,7 +408,7 @@ const User = () => {
                 <div className='w-full text-center my-5'>{imgsize.lastupdated.trim() === "" ? "" : imgsize.lastupdated}</div>
               </div>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
+                <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Video.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{mediasize.size.trim() === "" ? "0 B" : mediasize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Videos</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -416,7 +416,7 @@ const User = () => {
                 <div className='w-full text-center my-5'>{mediasize.lastupdated.trim() === "" ? "" : mediasize.lastupdated}</div>
               </div>
               <div className='bg-white w-80 md:w-60 h-60 p-10 relative rounded-3xl'>
-                <Image width={100} height={100} className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
+                <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Other.png" alt="Docs Logo" />
                 <span className='absolute top-4 right-4'>{othersize.size.trim() === "" ? "0 B" : othersize.size}</span>
                 <div className='mt-10 mb-4 w-full text-center font-semibold'>Others</div>
                 <div className='w-full h-[2px] bg-gray-200 my-5'></div>
@@ -529,7 +529,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -543,7 +543,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
@@ -619,7 +619,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -633,7 +633,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -714,7 +714,7 @@ const User = () => {
 
 
                         <div className="logo w-16 h-16 object-contain">
-                          <Image
+                          <Image priority
                           width={100}
                           height={100}
                             src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
@@ -753,7 +753,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -767,7 +767,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -795,7 +795,7 @@ const User = () => {
 
 
                         <div className="logo w-14 h-14 object-contain">
-                          <Image
+                          <Image priority
                             src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
                              width={100}
                              height={100}
@@ -834,7 +834,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -848,7 +848,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -975,7 +975,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -989,7 +989,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
@@ -1064,7 +1064,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -1078,7 +1078,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -1206,7 +1206,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -1220,7 +1220,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
@@ -1296,7 +1296,7 @@ const User = () => {
                                   setDetails(true)
                                 }
                               } className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Details.png" alt="Details" />
                                 Details
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -1310,7 +1310,7 @@ const User = () => {
                                   window.location.href = result
                                 }
                               } data-id={e.$id} className="py-2">
-                                <Image width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
 
