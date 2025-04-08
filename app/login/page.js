@@ -70,14 +70,12 @@ const Login = () => {
         ).then(e => {
             router.push("/user")
         }).catch(e => {
-            console.log(e);
             toast("Invalid OTP")
             setTruestate(false)
             setverifystate(false)
         })
 
     }
-
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
         if (cookieFallback &&cookieFallback !== '[]') {
@@ -86,7 +84,7 @@ const Login = () => {
         // Disable the exhaustive-deps warning
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
-
+    
     return (
         <div className='h-[100vh] flex flex-col items-center sm:flex-row sm:overflow-hidden'>
             <Toaster />
@@ -100,7 +98,7 @@ const Login = () => {
 
                 <Image src="/Dashboard.png" width={250} height={250} alt='Store It image' />
             </div>
-            <div className='flex items-start px-12 relative top-10  justify-center flex-col w-full sm:w-1/2 gap-10 '>
+            <div className='flex items-start px-4 sm:px-12 relative top-10  justify-center flex-col w-full sm:w-1/2 gap-10 '>
                 <h1 className='font-bold text-5xl text-gray-800'>Login</h1>
                 <div className='w-[95%] shadow-2xl shadow-changer  flex flex-col gap-4 px-4 py-4 rounded-2xl'>
                     <Label htmlFor="email">Email</Label>

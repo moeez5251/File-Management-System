@@ -17,8 +17,8 @@ export default function NotFound() {
             </div>
             </div>
             <div className='flex w-full items-center flex-col gap-6 justify-center my-44'>
-                <div className='font-semibold text-3xl text-[#fa7275]'>The Page You are requesting was not found</div>
-                <p className='text-xl'>Please go back to the <Link href="/" className='text-[#fa7275] font-semibold'>Home Page</Link></p>
+                <div className='font-semibold text-3xl text-[#fa7275] text-center'>The Page You are requesting was not found</div>
+                <p className='text-xl text-center'>Please go back to the <Link href="/" className='text-[#fa7275] font-semibold'>Home Page</Link></p>
             </div>
         </>
     )

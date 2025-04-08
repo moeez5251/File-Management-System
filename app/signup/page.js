@@ -128,7 +128,7 @@ const Signup = () => {
 
                 <Image src="/Dashboard.png" width={250} height={250} alt='Store It image' />
             </div>
-            <div className='flex items-start px-12 relative top-10   justify-center flex-col w-full sm:w-1/2 gap-10  '>
+            <div className='flex items-start px-4 sm:px-12 relative top-10   justify-center flex-col w-full sm:w-1/2 gap-10  '>
                 <h1 className='font-bold text-5xl text-gray-800'>Create Account</h1>
                 <div className='w-[95%] shadow-2xl name-valid  flex flex-col gap-4 px-4 py-4 rounded-2xl'>
                     <Label htmlFor="email">Full Name</Label>

@@ -24,14 +24,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from 'next/image';
+import { Input } from '@/components/ui/input';
+import { Copy } from 'lucide-react';
 const User = () => {
   const router = useRouter();
   const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
     .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
   const storage = new Storage(client);
-  const [opening, setopening] = useState(false)
   const [files, setfiles] = useState([])
   const [docfiles, setdocfiles] = useState([])
+  const [share, setShare] = useState(false)
+  const [sharedet, setSharedet] = useState("")
   const [docfilesize, setdocfilesize] = useState({
     size: "",
     lastupdated: ""
@@ -535,7 +538,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -625,7 +637,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -715,8 +736,8 @@ const User = () => {
 
                         <div className="logo w-16 h-16 object-contain">
                           <Image priority
-                          width={100}
-                          height={100}
+                            width={100}
+                            height={100}
                             src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
@@ -759,7 +780,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -797,8 +827,8 @@ const User = () => {
                         <div className="logo w-14 h-14 object-contain">
                           <Image priority
                             src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
-                             width={100}
-                             height={100}
+                            width={100}
+                            height={100}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
                           />
@@ -840,7 +870,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -981,7 +1020,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -1070,7 +1118,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -1212,7 +1269,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -1302,7 +1368,16 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  console.log("do");
+                                  setShare(true)
+                                  setSharedet(e)
+                                }
+                              } className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Share.png" alt="Share" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={
+                                () => {
                                   const result = storage.getFileDownload(
                                     process.env.NEXT_PUBLIC_BUCKET_ID,
                                     e.$id
@@ -1421,6 +1496,67 @@ const User = () => {
         </svg>
 
       </div>
+      <Dialog open={share} onopenchange={setShare}>
+        <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
+          <DialogHeader className="w-full">
+            <DialogTitle className="text-center">Share a file</DialogTitle>
+
+          </DialogHeader>
+          <DialogDescription className="flex flex-col gap-5 my-3">
+            <span className='flex items-center border-1 px-4 py-3 gap-5 rounded-2xl'>
+              <span className="w-10 object-contain rounded-4xl">
+
+                <FileIcon
+                  extension={sharedet.name ? sharedet.name.split(".").pop() : "txt"}
+                  {...defaultStyles[sharedet.name ? sharedet.name.split(".").pop() : "txt"]}
+                  color="#EAEAEA"
+                  fold={true}
+                  foldColor="#C0C0C0"
+                  glyphColor="#2563EB"
+                  gradientColor="#FFFFFF"
+                  gradientOpacity={0.7}
+                  labelColor="#EF4444"
+                  labelTextColor="#FFFFFF"
+                  radius={8}
+
+                />
+              </span>
+              <span className='flex flex-col gap-2'>
+                <span className='font-semibold text-black'>{sharedet.name}</span>
+                <span>{formatDate(sharedet.$updatedAt)} </span>
+              </span>
+            </span>
+            <span className='flex  items-center justify-center gap-2'>
+              <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet.$id} type="text" readOnly />
+              <Button onClick={() => {
+                navigator.clipboard.writeText(document.querySelector(".input-share").value)
+                toast("Copied to clipboard")
+              }} className="cursor-pointer ">
+                <Copy />
+              </Button>
+            </span>
+          </DialogDescription>
+          <button onClick={() => { setShare(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={15}
+              height={15}
+              fill="none"
+              className="injected-svg"
+              color="black"
+              data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="black"
+                fillRule="evenodd"
+                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
 
   )
