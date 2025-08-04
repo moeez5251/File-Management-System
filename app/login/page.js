@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2 } from "lucide-react"
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useState,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Client, Account, ID } from 'appwrite';
 import {
     InputOTP,
@@ -78,18 +78,27 @@ const Login = () => {
     }
     useEffect(() => {
         const cookieFallback = localStorage.getItem("cookieFallback");
-        if (cookieFallback &&cookieFallback !== '[]') {
+        if (cookieFallback && cookieFallback !== '[]') {
             router.replace("/user");
         }
         // Disable the exhaustive-deps warning
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
-    
+    useEffect(() => {
+        router.prefetch("/user")
+        router.prefetch("/")
+
+
+        return () => {
+
+        }
+    }, [router])
+
     return (
         <div className='h-[100vh] flex flex-col items-center sm:flex-row sm:overflow-hidden'>
             <Toaster />
             <div className='bg-[#fa7275] w-full sm:w-1/2 py-3 h-full flex justify-end flex-col items-center gap-16'>
-                <Image src="/logo.png" width={170} height={170} alt='Store It logo' />
+                <Image onClick={() => router.push("/")} className='cursor-pointer' src="/logo.png" width={170} height={170} alt='Store It logo' />
                 <div className='w-4/5 mx-auto text-white flex flex-col gap-6'>
 
                     <h1 className='font-extrabold text-5xl '>Manage Your Files the best way</h1>
@@ -126,7 +135,7 @@ const Login = () => {
                         <Loader2 className="animate-spin" />
                     </Button>
                 }
-                <div className='text-center w-full'>Don&apos;t have an account ? <Link className='text-[#fa7275]' href="/signup">Create Account</Link></div>
+                <div className='text-center w-full'>Don&apos;t have an account ? <Link className='text-[#fa7275]' prefetch={true} href="/signup">Create Account</Link></div>
 
             </div>
             <Dialog open={opening} onopenchange={setopening}>

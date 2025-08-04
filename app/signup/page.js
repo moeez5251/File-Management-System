@@ -115,11 +115,20 @@ const Signup = () => {
         })
 
     }
+    useEffect(() => {
+      router.prefetch("/user")
+      router.prefetch("/")
+    
+      return () => {
+        
+      }
+    }, [router])
+    
     return (
         <div className='h-[100vh] flex flex-col items-center sm:flex-row  sm:overflow-y-hidden'>
             <Toaster />
             <div className='bg-[#fa7275] w-full sm:w-1/2 h-full flex py-3 md:py-0  justify-end flex-col items-center gap-16'>
-                <Image src="/logo.png" width={170} height={170} alt='Store It logo' />
+                <Image onClick={() => router.push("/")} className='cursor-pointer' src="/logo.png" width={170} height={170} alt='Store It logo' />
                 <div className='w-4/5 mx-auto text-white flex flex-col gap-6'>
 
                     <h1 className='font-extrabold text-5xl '>Manage Your Files the best way</h1>
@@ -147,7 +156,7 @@ const Signup = () => {
                     <Button onClick={handleclick} disabled className="w-[95%]  bg-[#fa7275] text-base h-14 rounded-full cursor-pointer hover:bg-[#ff686c] disabled:bg-[#ff686c]">Creating Account <Loader2 className="animate-spin" /> </Button>
                 }
 
-                <div className='text-center w-full'>Already have an account ? <Link className='text-[#fa7275]' href="/login">Login</Link></div>
+                <div className='text-center w-full'>Already have an account ? <Link prefetch={true} className='text-[#fa7275]' href="/login">Login</Link></div>
 
             </div>
 

@@ -198,7 +198,14 @@ const User = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
+  useEffect(() => {
+    router.prefetch("/login")
+  
+    return () => {
+      
+    }
+  }, [router])
+  
   const handlesidebar = () => {
 
     document.querySelector(".sidebar").classList.toggle("left-0");

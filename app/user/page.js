@@ -74,8 +74,8 @@ const User = () => {
     }
     const handlechange = (e) => {
         if (!e.target.files[0]) { return }
-        if ((e.target.files[0].size / 1048576) > 5) {
-            toast("File size should be less than 5mb")
+        if ((e.target.files[0].size / 1048576) > 50) {
+            toast("File size should be less than 50 mb")
             ref.current.value = ""
             return
         }
@@ -215,9 +215,11 @@ const User = () => {
                 toast("File uploaded successfully")
                 handlefilegetting()
                 setfile(null)
-                ref.current.value = ""
             }).catch(e => {
+                console.log(e);
                 toast("File upload failed")
+                setupload(false)
+                setfile(null)
             })
         }
         return () => {
@@ -289,6 +291,27 @@ const User = () => {
         // Disable the exhaustive-deps warning
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
+    useEffect(() => {
+        router.prefetch("/")
+
+        return () => {
+
+        }
+    }, [router])
+    useEffect(() => {
+        window.addEventListener("dragover", e => e.preventDefault())
+        window.addEventListener("drop", e => {
+            e.preventDefault()
+            const file = e.dataTransfer.files[0];
+            setfile(file)
+        })
+        return () => {
+            window.removeEventListener("dragover", e => e.preventDefault())
+            window.removeEventListener("drop", e => e.preventDefault())
+            setfile(null)
+
+        }
+    }, [])
 
     if (!isValid) return null;
 
@@ -704,7 +727,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -818,7 +841,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -976,7 +999,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -1081,7 +1104,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -1247,7 +1270,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -1361,7 +1384,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -1528,7 +1551,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id
@@ -1642,7 +1665,7 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-                                                                    
+
                                                                     const result = storage.getFileDownload(
                                                                         process.env.NEXT_PUBLIC_BUCKET_ID,
                                                                         e.$id

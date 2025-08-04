@@ -2,8 +2,8 @@ import { Client, Storage } from 'appwrite';
 import { DownloadIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { FileIcon, defaultStyles } from 'react-file-icon';
-
 const Slug = async ({ params }) => {
     const { slug } = await params;
     let filefound = false
@@ -27,7 +27,7 @@ const Slug = async ({ params }) => {
 
     }
     catch (e) {
-        console.log("File not found");
+
     }
     function formatDate(isoString) {
         const date = new Date(isoString);
@@ -37,10 +37,12 @@ const Slug = async ({ params }) => {
     return (
         <>
             <div className='flex items-center justify-between mx-3 md:mx-16 mt-5'>
-                <Image priority height={100} width={100} className='w-30 md:w-42 ' src="/User.png" alt="" />
+                <Link href="/" className='flex items-center gap-5'>
+                    <Image priority height={100} width={100} className='w-30 md:w-42 cursor-pointer ' src="/User.png" alt="" />
+                </Link>
                 <div className='flex items-center gap-5'>
 
-                    <Link href="/login" className="bg-[#fa7275] px-7 py-4 rounded-full text-white text-base">
+                    <Link prefetch={true} href="/login" className="bg-[#fa7275] px-7 py-4 rounded-full text-white text-base">
 
                         Login</Link>
                 </div>
