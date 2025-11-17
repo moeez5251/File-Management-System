@@ -103,77 +103,103 @@ const User = () => {
     }
 
     const handlefilegetting = async () => {
-        try {
-            const response = await storage.listFiles(
-                process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
-            );
-            setfiles(response.files)
-            const documentMimeTypes = [
-                "application/pdf", // PDF
-                "application/msword", // Word (.doc)
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (.docx)
-                "application/vnd.ms-excel", // Excel (.xls)
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel (.xlsx)
-                "application/vnd.ms-powerpoint", // PowerPoint (.ppt)
-                "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (.pptx)
-                "text/plain", // Plain text (.txt)
-                "application/rtf", // Rich Text Format (.rtf)
-                "application/vnd.oasis.opendocument.text", // OpenDocument Text (.odt)
-                "application/vnd.oasis.opendocument.spreadsheet" // OpenDocument Spreadsheet (.ods)
-            ];
-            const filteredfiles = response.files.filter(file => documentMimeTypes.includes(file.mimeType))
-            setdocfiles(
-                filteredfiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
-            )
-            const imageMimeTypes = [
-                "image/jpeg", // JPEG (.jpg, .jpeg)
-                "image/png", // PNG (.png)
-                "image/gif", // GIF (.gif)
-                "image/bmp", // Bitmap (.bmp)
-                "image/webp", // WebP (.webp)
-                "image/tiff", // TIFF (.tiff)
-                "image/svg+xml", // SVG (.svg)
-                "image/vnd.adobe.photoshop", // Photoshop (.psd)
-                "image/x-icon", // Icon (.ico)
-                "image/heif", // HEIF (.heif)
-                "image/heic", // HEIC (.heic)
-            ];
-            const filteredimagefiles = response.files.filter(file => imageMimeTypes.includes(file.mimeType))
-            setimagefiles(
-                filteredimagefiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
-            )
-            const mediaMimeTypes = [
-                "audio/mpeg", // MP3 (.mp3)
-                "audio/wav", // WAV (.wav)
-                "audio/ogg", // OGG (.ogg)
-                "audio/flac", // FLAC (.flac)
-                "audio/aac", // AAC (.aac)
-                "audio/webm", // WebM (.webm)
-                "video/mp4", // MP4 (.mp4)
-                "video/webm", // WebM (.webm)
-                "video/ogg", // OGG (.ogv)
-                "video/x-msvideo", // AVI (.avi)
-                "video/quicktime", // MOV (.mov)
-                "video/x-matroska", // MKV (.mkv)
-                "video/3gpp", // 3GP (.3gp)
-                "video/flv", // FLV (.flv)
-            ];
-            const filteredmediafiles = response.files.filter(file => mediaMimeTypes.includes(file.mimeType))
-            setmediafiles(
-                filteredmediafiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id)
+        if (!accountinfo) return;
 
-            )
-            const otherFiles = response.files.filter(file => {
-                return !documentMimeTypes.includes(file.mimeType) &&
-                    !imageMimeTypes.includes(file.mimeType) &&
-                    !mediaMimeTypes.includes(file.mimeType);
-            });
-            setOther(otherFiles.filter(e => e.$permissions[0].match(/user:([a-zA-Z0-9]+)/)[1] === accountinfo.$id));
+        try {
+            // 1. Get All Files
+            const response = await storage.listFiles(process.env.NEXT_PUBLIC_BUCKET_ID);
+            const allFiles = response.files;
+
+            // 2. Utility: Extract userId from permissions safely
+            const getOwnerId = (file) => {
+                if (!file?.$permissions) return null;
+
+                for (const perm of file.$permissions) {
+                    if (typeof perm !== "string") continue;
+
+                    const match = perm.match(/user:([^"]+)/);
+                    if (match) return match[1];
+                }
+                return null;
+            };
+
+            const userFiles = allFiles.filter(
+                (file) => getOwnerId(file) === accountinfo.$id
+            );
+
+            const documentMimeTypes = [
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "text/plain",
+                "application/rtf",
+                "application/vnd.oasis.opendocument.text",
+                "application/vnd.oasis.opendocument.spreadsheet"
+            ];
+
+            const imageMimeTypes = [
+                "image/jpeg",
+                "image/png",
+                "image/gif",
+                "image/bmp",
+                "image/webp",
+                "image/tiff",
+                "image/svg+xml",
+                "image/vnd.adobe.photoshop",
+                "image/x-icon",
+                "image/heif",
+                "image/heic",
+            ];
+
+            const mediaMimeTypes = [
+                "audio/mpeg",
+                "audio/wav",
+                "audio/ogg",
+                "audio/flac",
+                "audio/aac",
+                "audio/webm",
+                "video/mp4",
+                "video/webm",
+                "video/ogg",
+                "video/x-msvideo",
+                "video/quicktime",
+                "video/x-matroska",
+                "video/3gpp",
+                "video/flv",
+            ];
+
+            setfiles(allFiles);
+
+            setdocfiles(
+                userFiles.filter(file => documentMimeTypes.includes(file.mimeType))
+            );
+
+            setimagefiles(
+                userFiles.filter(file => imageMimeTypes.includes(file.mimeType))
+            );
+
+            setmediafiles(
+                userFiles.filter(file => mediaMimeTypes.includes(file.mimeType))
+            );
+
+            setOther(
+                userFiles.filter(
+                    file =>
+                        !documentMimeTypes.includes(file.mimeType) &&
+                        !imageMimeTypes.includes(file.mimeType) &&
+                        !mediaMimeTypes.includes(file.mimeType)
+                )
+            );
 
         } catch (error) {
-            toast("Failed to get files")
+            toast("Failed to get files");
         }
-    }
+    };
+
     const handlerename = async () => {
         if (renameinp === "") {
             return
@@ -292,6 +318,13 @@ const User = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
     useEffect(() => {
+        handlefilegetting()
+        return () => {
+
+        }
+    }, [accountinfo])
+
+    useEffect(() => {
         router.prefetch("/")
 
         return () => {
@@ -312,7 +345,6 @@ const User = () => {
 
         }
     }, [])
-
     if (!isValid) return null;
 
     return (

@@ -67,7 +67,8 @@ const Login = () => {
         await account.createSession(
             userid,
             e
-        ).then(e => {
+        ).then( e => {
+            account.updateName(input.split("@")[0])
             router.push("/user")
         }).catch(e => {
             toast("Invalid OTP")
@@ -135,7 +136,6 @@ const Login = () => {
                         <Loader2 className="animate-spin" />
                     </Button>
                 }
-                <div className='text-center w-full'>Don&apos;t have an account ? <Link className='text-[#fa7275]' prefetch={true} href="/signup">Create Account</Link></div>
 
             </div>
             <Dialog open={opening} onopenchange={setopening}>
