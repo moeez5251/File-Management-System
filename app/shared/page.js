@@ -168,6 +168,7 @@ const Shared = () => {
         AOS.init({
             once: true,
             duration: 500,
+            disable:"phone"
 
         });
 
