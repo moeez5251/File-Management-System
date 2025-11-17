@@ -67,7 +67,7 @@ const Login = () => {
         await account.createSession(
             userid,
             e
-        ).then( e => {
+        ).then(e => {
             account.updateName(input.split("@")[0])
             router.push("/user")
         }).catch(e => {
@@ -137,6 +137,7 @@ const Login = () => {
                     </Button>
                 }
 
+                <div className='text-center w-full'>Want to share files without login ? <Link prefetch href="/shared" className='text-[#fa7275]'>Click here</Link></div>
             </div>
             <Dialog open={opening} onopenchange={setopening}>
                 <DialogContent >

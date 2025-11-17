@@ -27,7 +27,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from 'next/image';
-import { Label } from '@/components/ui/label';
 import { Copy } from "lucide-react"
 const User = () => {
     const router = useRouter();
