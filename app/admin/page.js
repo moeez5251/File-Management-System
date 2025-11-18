@@ -30,11 +30,13 @@ import NoFile from '@/components/nofile';
 import { createSwapy } from 'swapy'
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { Label } from '@/components/ui/label';
 const Shared = () => {
     const router = useRouter()
     const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
         .setProject(process.env.NEXT_PUBLIC_PROJECT_SHARED);
     const storage = new Storage(client);
+    const account = new Account(client);
     const [opening, setopening] = useState(false)
     const [files, setfiles] = useState([])
     const [file, setfile] = useState(null)
@@ -44,8 +46,17 @@ const Shared = () => {
     const [renamedialog, setrenamedialog] = useState(false)
     const [renameinp, setRenameinp] = useState("")
     const [deletedialog, setdeletedialog] = useState(false)
+    const [disabledbtn, setdisabledbtn] = useState(false)
+    const [accountinfo, setaccountinfo] = useState("")
     const grabdetails = useRef("")
+
     const containerRef = useRef(null);
+
+    const [input, setinput] = useState({
+        email: "",
+        password: "",
+    })
+
     const handleclick = () => {
         setopening(true)
     }
@@ -116,6 +127,38 @@ const Shared = () => {
         } else {
             return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
         }
+    }
+    const handleinpchange = (e) => {
+        setinput({ ...input, [e.target.name]: e.target.value })
+    }
+    const handlelogin = async () => {
+        setdisabledbtn(true)
+        try {
+
+            const result = await account.createEmailPasswordSession(
+                input.email,
+                input.password
+            );
+            setaccountinfo(result)
+            setdisabledbtn(false)
+            setinput({ email: "", password: "" })
+        }
+        catch (e) {
+            toast("Invalid credentials")
+            setdisabledbtn(false)
+            return
+        }
+
+    }
+    const handledeleteallfiles = async () => {
+        for (const file of files) {
+            await storage.deleteFile(
+                process.env.NEXT_PUBLIC_SHARED_ID,
+                file.$id
+            )
+        }
+        toast("All files deleted successfully")
+        
     }
     useEffect(() => {
         if (file && finger) {
@@ -188,6 +231,7 @@ const Shared = () => {
         }
     }, [])
     useEffect(() => {
+        if (!document.querySelector(".swapy")) { return }
         document.querySelector(".swapy").addEventListener("dragover", e => e.preventDefault())
         document.querySelector(".swapy").addEventListener("drop", e => {
             e.preventDefault()
@@ -210,166 +254,176 @@ const Shared = () => {
         // Disable the exhaustive-deps warning
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    useEffect(() => {
+        (async () => {
+            try {
+                const session = await account.getSession("current");
+                setaccountinfo(session);
+            } catch (err) {
+            }
+        })();
+    }, []);
+
+
     return (
         <>
             <Toaster />
-            <div className='w-full h-screen overflow-hidden'>
+            {
+                accountinfo ?
+                    <div className='w-full h-screen overflow-hidden'>
 
-                <div className='flex items-center justify-between mx-3 md:mx-8 mt-5'>
-                    <Image onClick={() => router.push("/")} priority height={100} width={100} className='w-30 md:w-42 cursor-pointer ' src="/User.png" alt="" />
-                    <div className='flex items-center gap-5'>
-
-                        <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
-                            <div>
-
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width={20}
-                                    height={20}
-                                    fill="none"
-                                    className="injected-svg"
-                                    color="#fff"
-                                    data-src="https://cdn.hugeicons.com/icons/upload-01-solid-sharp.svg"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        fill="#fff"
-                                        fillRule="evenodd"
-                                        d="M20 11.4c0-.43-.03-.852-.086-1.264l1.982-.272c.069.502.104 1.015.104 1.536C22 17.192 17.583 22 12 22S2 17.192 2 11.4c0-.521.036-1.034.104-1.536l1.982.272A9.314 9.314 0 0 0 4 11.4c0 4.811 3.642 8.6 8 8.6 4.358 0 8-3.789 8-8.6Z"
-                                        clipRule="evenodd"
-                                    />
-                                    <path
-                                        fill="#fff"
-                                        fillRule="evenodd"
-                                        d="m12 2 3.707 3.707-1.414 1.415L13 5.829v7.585h-2V5.83L9.707 7.122 8.293 5.707 12 2Z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
+                        <div className='flex items-center justify-between mx-2 md:mx-8 mt-5'>
+                            <div className='flex items-center bg-[#fa7275] px-2 md:px-6 py-4 rounded-full shadow-xl  text-white text-sm md:text-base'>
+                                {formatFileSize(files.reduce((a, b) => a + b.sizeOriginal, 0))}/2 GB used
                             </div>
+                            <div className='flex items-center gap-5'>
 
-                            Upload</Button>
+                                <Button onClick={() => { account.deleteSession("current"); setaccountinfo("") }} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+                                    <div>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-out-icon lucide-log-out"><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /></svg>
+                                    </div>
+                                    Log Out</Button>
 
-                    </div>
-                </div>
+                            </div>
+                        </div>
 
-                <div ref={containerRef} className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 mx-3 md:mx-8 mt-10 mb-20 bg-[#f1f3f8] px-3 py-6 rounded-3xl h-[80vh] overflow-y-auto overflow-x-hidden swapy'>
-                    {
-                        files.length > 0 &&
-                        files.map((e, key) =>
-                            <div data-aos-delay={key * 80} data-aos="zoom-in" key={key} data-swapy-slot={`slot-${key}`} >
-                                <div data-swapy-item={`item-${key}`} className='bg-white h-56 px-5 py-6 rounded-3xl cursor-grab'>
-                                    <div className='flex items-stretch justify-between'>
+                        <div ref={containerRef} className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 mx-3 md:mx-8 mt-10 mb-20 bg-[#f1f3f8] px-3 py-6 rounded-3xl h-[80vh] overflow-y-auto overflow-x-hidden swapy relative'>
+                            <div onClick={handledeleteallfiles} className='fixed bg-[#fa7275] hover:bg-[#ff686c] z-10 text-white px-4 py-2 rounded-lg right-3 md:right-8 bottom-2 cursor-pointer'>
+                                Delete all files
+                            </div>
+                            {
+                                files.length > 0 &&
+                                files.map((e, key) =>
+                                    <div data-aos-delay={key * 80} data-aos="zoom-in" key={key} data-swapy-slot={`slot-${key}`} >
+                                        <div data-swapy-item={`item-${key}`} className='bg-white h-56 px-5 py-6 rounded-3xl cursor-grab'>
+                                            <div className='flex items-stretch justify-between'>
 
-                                        <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
-                                            <div className="logo w-7 object-contain rounded-4xl">
-                                                <FileIcon
-                                                    extension={e.name.split(".").pop() || "txt"}
-                                                    {...defaultStyles[e.name.split(".").pop() || "txt"]}
-                                                    color="#f3f4f6"
-                                                    fold={true}
-                                                    foldColor="#d1d5db"
-                                                    glyphColor="#ef4444"
-                                                    gradientColor="#ffffff"
-                                                    gradientOpacity={0.3}
-                                                    labelColor="#f87171"
-                                                    labelTextColor="#ffffff"
-                                                    className="shadow-md"
-                                                />
+                                                <div className='bg-[#ffe5e5] h-14 p-3 rounded-full w-fit relative -top-2'>
+                                                    <div className="logo w-7 object-contain rounded-4xl">
+                                                        <FileIcon
+                                                            extension={e.name.split(".").pop() || "txt"}
+                                                            {...defaultStyles[e.name.split(".").pop() || "txt"]}
+                                                            color="#f3f4f6"
+                                                            fold={true}
+                                                            foldColor="#d1d5db"
+                                                            glyphColor="#ef4444"
+                                                            gradientColor="#ffffff"
+                                                            gradientOpacity={0.3}
+                                                            labelColor="#f87171"
+                                                            labelTextColor="#ffffff"
+                                                            className="shadow-md"
+                                                        />
+
+                                                    </div>
+                                                </div>
+                                                <div className='flex flex-col gap-8 items-end'>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                width={30}
+                                                                height={30}
+                                                                fill="none"
+                                                                className="injected-svg cursor-pointer"
+                                                                color="black"
+                                                                data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    stroke="black"
+                                                                    strokeWidth={1.5}
+                                                                    d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
+                                                                />
+                                                            </svg>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
+                                                            <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+
+                                                            < DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                setrenamedialog(true)
+                                                                setRenameinp(e.name)
+                                                            }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+
+
+
+                                                            <DropdownMenuSeparator />
+
+
+                                                            <DropdownMenuItem onClick={
+                                                                () => {
+
+                                                                    const result = storage.getFileDownload(
+                                                                        process.env.NEXT_PUBLIC_SHARED_ID,
+                                                                        e.$id
+                                                                    )
+                                                                    window.location.href = result
+                                                                }
+                                                            } data-id={e.$id} className="py-2">
+                                                                <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+
+                                                            <DropdownMenuItem onClick={() => {
+                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                setdeletedialog(true)
+                                                            }} data-id={e.$id} className="py-2">
+                                                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                                                Move to Trash
+                                                            </DropdownMenuItem>
+
+
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                </div>
 
                                             </div>
+                                            <div
+                                                className='font-semibold mt-4'>
+                                                {e.name}
+                                            </div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
                                         </div>
-                                        <div className='flex flex-col gap-8 items-end'>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger>
-
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width={30}
-                                                        height={30}
-                                                        fill="none"
-                                                        className="injected-svg cursor-pointer"
-                                                        color="black"
-                                                        data-src="https://cdn.hugeicons.com/icons/more-vertical-circle-01-stroke-standard.svg"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke="black"
-                                                            strokeWidth={1.5}
-                                                            d="M14 4.55a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 12a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM14 19.5a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z"
-                                                        />
-                                                    </svg>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
-                                                    <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                                                    {
-                                                        e.$id.startsWith(finger) &&
-                                                        < DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("renameid", e.$id)
-                                                            setrenamedialog(true)
-                                                            setRenameinp(e.name)
-                                                        }
-                                                        } data-id={e.$id} className="py-2">
-                                                            <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-
-                                                    }
-                                                    {
-                                                        e.$id.startsWith(finger) &&
-                                                        <DropdownMenuSeparator />
-                                                    }
-
-                                                    <DropdownMenuItem onClick={
-                                                        () => {
-
-                                                            const result = storage.getFileDownload(
-                                                                process.env.NEXT_PUBLIC_SHARED_ID,
-                                                                e.$id
-                                                            )
-                                                            window.location.href = result
-                                                        }
-                                                    } data-id={e.$id} className="py-2">
-                                                        <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
-                                                        Download
-                                                    </DropdownMenuItem>
-                                                    {
-                                                        e.$id.startsWith(finger) &&
-                                                        <DropdownMenuSeparator />
-                                                    }
-                                                    {
-                                                        e.$id.startsWith(finger) &&
-                                                        <DropdownMenuItem onClick={() => {
-                                                            sessionStorage.setItem("moveid", e.$id)
-                                                            setdeletedialog(true)
-                                                        }} data-id={e.$id} className="py-2">
-                                                            <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                                            Move to Trash
-                                                        </DropdownMenuItem>
-                                                    }
-
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                            <span>{formatFileSize(e.sizeOriginal)}</span>
-                                        </div>
-
                                     </div>
-                                    <div
-                                        className='font-semibold mt-4'>
-                                        {e.name}
-                                    </div>
-                                    <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+
+                                )
+                            }
+                            {
+                                files.length === 0 &&
+                                <div className='w-full h-[80vh] flex items-center justify-center flex-col gap-5 absolute left-0'>
+
+                                    <NoFile className="w-64 h-46 " />
                                 </div>
+                            }
+                        </div>
+                    </div>
+                    :
+                    <div className='h-screen'>
+                        <div className='flex items-center justify-between mx-3 md:mx-8 mt-5'>
+                            <Image onClick={() => router.push("/")} priority height={100} width={100} className='w-30 md:w-42 cursor-pointer ' src="/User.png" alt="" />
+
+                        </div>
+                        <div className='flex items-center px-4 sm:px-12 relative top-24  flex-col  gap-8 h-full'>
+                            <div className='w-[95%] sm:w-[70%] border  flex flex-col gap-4 px-4 py-4 rounded-2xl'>
+                                <Label htmlFor="email">Email</Label>
+                                <input value={input.email} name='email' onChange={handleinpchange} className=" border-none outline-none placeholder:font-semibold" type="email" id="email" placeholder="Enter your email" />
                             </div>
 
-                        )
-                    }
-                    {
-                        files.length === 0 &&
-                        <div className='w-full h-[80vh] flex items-center justify-center flex-col gap-5 absolute left-0'>
-
-                            <NoFile className="w-64 h-46 " />
+                            <div className='w-[95%] sm:w-[70%] border flex flex-col gap-4 px-4 py-4 rounded-2xl'>
+                                <Label htmlFor="email">Password</Label>
+                                <input value={input.password} name='password' onChange={handleinpchange} className=" border-none outline-none placeholder:font-semibold" type="password" id="password" placeholder="Enter your password" />
+                            </div>
+                            <Button onClick={handlelogin} disabled={disabledbtn} className=" bg-[#fa7275] text-lg h-14 rounded-full cursor-pointer hover:bg-[#ff686c] w-[95%] sm:w-1/3">
+                                Login
+                            </Button>
                         </div>
-                    }
-                </div>
-            </div >
+                    </div>
+            }
 
             <Dialog open={opening} onOpenChange={setopening}>
                 <DialogContent className="max-w-lg bg-white p-6 rounded-2xl shadow-xl fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/4">
