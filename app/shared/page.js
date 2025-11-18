@@ -49,11 +49,7 @@ const Shared = () => {
     const handleclick = () => {
         setopening(true)
     }
-    (async () => {
-        const fp = await FingerprintJS.load();
-        const result = await fp.get();
-        setfinger(result.visitorId)
-    })()
+
     const handlechange = (e) => {
         if (!e.target.files[0]) { return }
         if ((e.target.files[0].size / 1048576) > 50) {
@@ -182,7 +178,11 @@ const Shared = () => {
             disable: "phone"
 
         });
-
+        (async () => {
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            setfinger(result.visitorId)
+        })()
         return () => {
 
         }
