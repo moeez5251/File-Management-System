@@ -44,6 +44,8 @@ const User = () => {
     const [renamedialog, setrenamedialog] = useState(false)
     const [renameinp, setRenameinp] = useState("")
     const [share, setShare] = useState(false)
+    const [uploadingdetails, setuploadingdetails] = useState("")
+
     const [sharedet, setSharedet] = useState("")
     const [docfilesize, setdocfilesize] = useState({
         size: "",
@@ -231,17 +233,21 @@ const User = () => {
     useEffect(() => {
         if (file) {
             setupload(true)
+            setopening(false)
             storage.createFile(
                 process.env.NEXT_PUBLIC_BUCKET_ID,
                 ID.unique(),
-                file
+                file,
+                [],
+                e => setuploadingdetails(e)
             ).then(e => {
                 setupload(false)
                 toast("File uploaded successfully")
                 handlefilegetting()
                 setfile(null)
+                setuploadingdetails("")
+
             }).catch(e => {
-                console.log(e);
                 toast("File upload failed")
                 setupload(false)
                 setfile(null)
@@ -1921,10 +1927,10 @@ const User = () => {
                 </DialogContent>
             </Dialog>
             <Dialog open={upload} onopenchange={setupload}>
-                <DialogContent className="w-60 lg:w-80 rounded-3xl h-16 fixed left-[70%] md:left-[85%] top-[88%] overflow-hidden" >
-                    <DialogHeader className="w-full">
+                <DialogContent className="w-full sm:w-80 rounded-3xl fixed  sm:left-[75%] lg:left-[85%] top-[88%] overflow-hidden" >
+                    <DialogHeader className="w-full ">
                         <DialogTitle className="text-base font-semibold top-0">Uploading...</DialogTitle>
-                        <span className='w-full h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0 animate-line'></span>
+                        <span style={{ width: `${uploadingdetails.progress}%` }} className='h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0'></span>
                     </DialogHeader>
                     <DialogDescription className="top-0">
                     </DialogDescription>
@@ -1947,6 +1953,10 @@ const User = () => {
                             />
                         </svg>
                     </button>
+                    <div className='text-center sm:text-left'>
+
+                        {uploadingdetails.sizeUploaded ? formatFileSize(uploadingdetails.sizeUploaded) : "0B"} of {file?.size ? formatFileSize(file?.size) : "0B"}
+                    </div>
                 </DialogContent>
             </Dialog>
             <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>

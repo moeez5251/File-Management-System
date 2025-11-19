@@ -44,6 +44,7 @@ const Shared = () => {
     const [renamedialog, setrenamedialog] = useState(false)
     const [renameinp, setRenameinp] = useState("")
     const [deletedialog, setdeletedialog] = useState(false)
+    const [uploadingdetails, setuploadingdetails] = useState("")
     const grabdetails = useRef("")
     const containerRef = useRef(null);
     const handleclick = () => {
@@ -116,6 +117,7 @@ const Shared = () => {
     useEffect(() => {
         if (file && finger) {
             setupload(true)
+            setopening(false)
             storage.createFile(
                 process.env.NEXT_PUBLIC_SHARED_ID,
                 `${finger}-${Math.floor(Math.random() * 1000)}`,
@@ -124,12 +126,13 @@ const Shared = () => {
                     Permission.read(Role.any()),
 
                 ],
+                e => setuploadingdetails(e)
             ).then(e => {
                 setupload(false)
                 toast("File uploaded successfully")
                 setfile(null)
+                setuploadingdetails("")
             }).catch(e => {
-                console.log(e);
                 toast("File upload failed")
                 setupload(false)
                 setfile(null)
@@ -417,10 +420,10 @@ const Shared = () => {
             </Dialog>
 
             <Dialog open={upload} onopenchange={setupload}>
-                <DialogContent className="w-60 lg:w-80 rounded-3xl h-16 fixed left-[70%] md:left-[85%] top-[88%] overflow-hidden" >
-                    <DialogHeader className="w-full">
+                <DialogContent className="w-full sm:w-80 rounded-3xl fixed  sm:left-[75%] lg:left-[85%] top-[88%] overflow-hidden " >
+                    <DialogHeader className="w-full ">
                         <DialogTitle className="text-base font-semibold top-0">Uploading...</DialogTitle>
-                        <span className='w-full h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0 animate-line'></span>
+                        <span style={{ width: `${uploadingdetails.progress}%` }} className='h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0'></span>
                     </DialogHeader>
                     <DialogDescription className="top-0">
                     </DialogDescription>
@@ -443,6 +446,11 @@ const Shared = () => {
                             />
                         </svg>
                     </button>
+                    <div className='text-center sm:text-left'>
+
+                    {uploadingdetails.sizeUploaded ? formatFileSize(uploadingdetails.sizeUploaded) : "0B"} of {file?.size ? formatFileSize(file?.size) : "0B"}
+                    </div>
+
                 </DialogContent>
             </Dialog>
 
