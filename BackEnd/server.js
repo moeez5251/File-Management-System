@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import  userroutes  from "./routes/user.js";
 dotenv.config();
-
+ 
 const app = express();
 
 connectDB();
