@@ -234,24 +234,25 @@ const User = () => {
         if (file) {
             setupload(true)
             setopening(false)
-            storage.createFile(
-                process.env.NEXT_PUBLIC_BUCKET_ID,
-                ID.unique(),
-                file,
-                [],
-                e => setuploadingdetails(e)
-            ).then(e => {
-                setupload(false)
-                toast("File uploaded successfully")
-                handlefilegetting()
-                setfile(null)
-                setuploadingdetails("")
+            const formData=new FormData()
+            formData.append("file",file)
+            fetch("http://localhost:8000/api/upload/file",
+                {
+                    method: "POST",
+                    body: formData,
+                }).then(e => {
+                    setupload(false)
+                    toast("File uploaded successfully")
+                    // handlefilegetting()
+                    setfile(null)
+                    // setuploadingdetails("")
 
-            }).catch(e => {
-                toast("File upload failed")
-                setupload(false)
-                setfile(null)
-            })
+                })
+                .catch(e => {
+                    toast("File upload failed")
+                    setupload(false)
+                    setfile(null)
+                })
         }
         return () => {
 
@@ -304,30 +305,7 @@ const User = () => {
     const handlesidebar = () => {
         document.querySelector(".sidebar").classList.toggle("left-0");
     }
-    useEffect(() => {
-        const cookieFallback = localStorage.getItem("cookieFallback");
-        if (!cookieFallback || cookieFallback === '[]') {
-            router.replace("/login");
-        } else {
-            setIsValid(true);
-            (async function name() {
-                const accountin = await account.get()
-                localStorage.setItem("accountid", accountin.$id)
-                setaccountinfo(accountin)
-            }
-                ())
-        }
-        return () => {
-        }
-        // Disable the exhaustive-deps warning
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router]);
-    useEffect(() => {
-        handlefilegetting()
-        return () => {
 
-        }
-    }, [accountinfo])
 
     useEffect(() => {
         router.prefetch("/")
@@ -350,7 +328,7 @@ const User = () => {
 
         }
     }, [])
-    if (!isValid) return null;
+    // if (!isValid) return null;
 
     return (
         <div className='h-[100vh] '>

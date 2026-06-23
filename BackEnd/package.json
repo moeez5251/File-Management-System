@@ -11,8 +11,14 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.7.2"
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.2",
+    "multer": "^2.2.0"
   }
 }

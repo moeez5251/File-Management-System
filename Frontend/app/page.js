@@ -221,7 +221,10 @@ const User = () => {
 
           <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
 
-            Login</Button>
+            Sign In</Button>
+          <Button onClick={() => router.push("/signup")}  className="flex items-center bg-white text-black px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base hover:bg-white border border-white hover:border-black ">
+
+            Sign Up</Button>
         </div>
       </div>
       <Tabs defaultValue="dashboard" className="h-full w-[94%] relative top-4  mt-6 lg:mx-6  lg:flex lg:items-start block mx-auto flex-row ">
