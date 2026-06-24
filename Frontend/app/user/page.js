@@ -36,7 +36,6 @@ const User = () => {
     const storage = new Storage(client);
     const [isValid, setIsValid] = useState(false);
     const [opening, setopening] = useState(false)
-    const [files, setfiles] = useState([])
     const [file, setfile] = useState(null)
     const ref = useRef()
     const [accountinfo, setaccountinfo] = useState("")
@@ -45,8 +44,8 @@ const User = () => {
     const [renameinp, setRenameinp] = useState("")
     const [share, setShare] = useState(false)
     const [uploadingdetails, setuploadingdetails] = useState("")
-
     const [sharedet, setSharedet] = useState("")
+    const [owner, setowner] = useState("")
     const [docfilesize, setdocfilesize] = useState({
         size: "",
         lastupdated: ""
@@ -104,30 +103,14 @@ const User = () => {
     }
 
     const handlefilegetting = async () => {
-        if (!accountinfo) return;
-
         try {
-            // 1. Get All Files
-            const response = await storage.listFiles(process.env.NEXT_PUBLIC_BUCKET_ID);
-            const allFiles = response.files;
-
-            // 2. Utility: Extract userId from permissions safely
-            const getOwnerId = (file) => {
-                if (!file?.$permissions) return null;
-
-                for (const perm of file.$permissions) {
-                    if (typeof perm !== "string") continue;
-
-                    const match = perm.match(/user:([^"]+)/);
-                    if (match) return match[1];
-                }
-                return null;
-            };
-
-            const userFiles = allFiles.filter(
-                (file) => getOwnerId(file) === accountinfo.$id
-            );
-
+            const response = await fetch("http://localhost:8000/api/files/byid",{
+                credentials:"include"
+            })
+            const data=await response.json()
+            const userFiles = data.files;
+            console.log(userFiles)
+            setowner(data.username)
             const documentMimeTypes = [
                 "application/pdf",
                 "application/msword",
@@ -173,30 +156,30 @@ const User = () => {
                 "video/flv",
             ];
 
-            setfiles(allFiles);
 
             setdocfiles(
-                userFiles.filter(file => documentMimeTypes.includes(file.mimeType))
+                userFiles.filter(file => documentMimeTypes.includes(file.mimetype))
             );
 
             setimagefiles(
-                userFiles.filter(file => imageMimeTypes.includes(file.mimeType))
+                userFiles.filter(file => imageMimeTypes.includes(file.mimetype))
             );
 
             setmediafiles(
-                userFiles.filter(file => mediaMimeTypes.includes(file.mimeType))
+                userFiles.filter(file => mediaMimeTypes.includes(file.mimetype))
             );
 
             setOther(
                 userFiles.filter(
                     file =>
-                        !documentMimeTypes.includes(file.mimeType) &&
-                        !imageMimeTypes.includes(file.mimeType) &&
-                        !mediaMimeTypes.includes(file.mimeType)
+                        !documentMimeTypes.includes(file.mimetype) &&
+                        !imageMimeTypes.includes(file.mimetype) &&
+                        !mediaMimeTypes.includes(file.mimetype)
                 )
             );
 
         } catch (error) {
+            console.log(error)
             toast("Failed to get files");
         }
     };
@@ -234,18 +217,18 @@ const User = () => {
         if (file) {
             setupload(true)
             setopening(false)
-            const formData=new FormData()
-            formData.append("file",file)
+            const formData = new FormData()
+            formData.append("file", file)
             fetch("http://localhost:8000/api/upload/file",
                 {
                     method: "POST",
+                    credentials: "include",
                     body: formData,
                 }).then(e => {
                     setupload(false)
                     toast("File uploaded successfully")
-                    // handlefilegetting()
+                    handlefilegetting()
                     setfile(null)
-                    // setuploadingdetails("")
 
                 })
                 .catch(e => {
@@ -265,8 +248,8 @@ const User = () => {
             handlefilegetting()
         }
         if (docfiles.length > 0) {
-            const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated = docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const totalsize = docfiles.reduce((total, file) => total + file.size, 0);
+            const lastupdated = docfiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
             setdocfilesize({
                 size: formatFileSize(totalsize),
                 lastupdated: formatDate(lastupdated)
@@ -289,8 +272,9 @@ const User = () => {
             })
         }
         if (other.length > 0) {
-            const totalsize = other.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated = other.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const totalsize = other.reduce((total, file) => total + file.size, 0);
+            const lastupdated = other.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
+            console.log(lastupdated)
             setothersize({
                 size: formatFileSize(totalsize),
                 lastupdated: formatDate(lastupdated)
@@ -1587,14 +1571,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1701,14 +1685,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1865,7 +1849,7 @@ const User = () => {
                             </span>
                             <span className='flex flex-col gap-2'>
                                 <span className='font-semibold text-black'>{Det.name}</span>
-                                <span>{formatDate(Det.$updatedAt)} </span>
+                                <span>{formatDate(Det.updatedAt)} </span>
                             </span>
                         </span>
                         <span className='flex flex-row  gap-10 my-5'>
@@ -1873,11 +1857,13 @@ const User = () => {
                                 <span>Format:</span>
                                 <span>Dimension:</span>
                                 <span>Last modified:</span>
+                                <span>Uploaded By</span>
                             </span>
                             <span className='flex gap-3 flex-col'>
                                 <span className='text-black font-semibold'>{Det.name ? Det.name.split(".").pop() : ""}</span>
-                                <span className='text-black font-semibold'>{formatFileSize(Det.sizeOriginal)}</span>
-                                <span className='text-black font-semibold'>{formatDate(Det.$updatedAt)}</span>
+                                <span className='text-black font-semibold'>{formatFileSize(Det.size)}</span>
+                                <span className='text-black font-semibold'>{formatDate(Det.updatedAt)}</span>
+                                <span className='text-black font-semibold'>{owner}</span>
                             </span>
 
 
@@ -1905,36 +1891,15 @@ const User = () => {
                 </DialogContent>
             </Dialog>
             <Dialog open={upload} onopenchange={setupload}>
-                <DialogContent className="w-full sm:w-80 rounded-3xl fixed  sm:left-[75%] lg:left-[85%] top-[88%] overflow-hidden" >
+                <DialogContent className="w-full sm:w-80 rounded-3xl fixed  sm:left-[75%] lg:left-[85%] top-[90%] overflow-hidden" >
                     <DialogHeader className="w-full ">
-                        <DialogTitle className="text-base font-semibold top-0">Uploading...</DialogTitle>
-                        <span style={{ width: `${uploadingdetails.progress}%` }} className='h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0'></span>
+                        <DialogTitle className="text-base font-semibold top-0 text-center">Uploading...</DialogTitle>
                     </DialogHeader>
                     <DialogDescription className="top-0">
                     </DialogDescription>
-                    <button className='absolute top-3  right-3 bg-white p-1 rounded-2xl z-40 pointer-events-none '>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={15}
-                            height={15}
-                            fill="none"
-                            className="injected-svg"
-                            color="white"
-                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                fill="white"
-                                fillRule="evenodd"
-                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
+                    <button className='absolute top-2.5 right-2 bg-white p-4 rounded-2xl z-40 pointer-events-none '>
+                    
                     </button>
-                    <div className='text-center sm:text-left'>
-
-                        {uploadingdetails.sizeUploaded ? formatFileSize(uploadingdetails.sizeUploaded) : "0B"} of {file?.size ? formatFileSize(file?.size) : "0B"}
-                    </div>
                 </DialogContent>
             </Dialog>
             <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>

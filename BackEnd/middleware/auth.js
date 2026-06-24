@@ -3,7 +3,8 @@ import User from "../models/user.js";
 
 export const authMiddleware = async (req, res, next) => {
     try {
-        let accessToken = req.cookies.accessToken;
+
+        const accessToken = req.cookies.accessToken;
 
         if (accessToken) {
             try {
@@ -12,11 +13,16 @@ export const authMiddleware = async (req, res, next) => {
                     process.env.ACCESS_TOKEN_SECRET
                 );
 
+
+
                 req.user = decoded;
                 return next();
             } catch (err) {
+
                 if (err.name !== "TokenExpiredError") {
-                    return res.status(401).json({ message: "Invalid access token" });
+                    return res.status(401).json({
+                        message: "Invalid access token",
+                    });
                 }
             }
         }
@@ -24,24 +30,53 @@ export const authMiddleware = async (req, res, next) => {
         const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
-            return res.status(401).json({ message: "Login required" });
+
+            return res.status(401).json({
+                message: "Refresh token missing. Please login again.",
+            });
         }
 
-        const decodedRefresh = jwt.verify(
-            refreshToken,
-            process.env.REFRESH_TOKEN_SECRET
-        );
+        let decodedRefresh;
+
+        try {
+            decodedRefresh = jwt.verify(
+                refreshToken,
+                process.env.REFRESH_TOKEN_SECRET
+            );
+
+
+        } catch (err) {
+
+
+            return res.status(401).json({
+                message: "Refresh token expired. Please login again.",
+            });
+        }
 
         const user = await User.findById(decodedRefresh.id);
 
-        if (!user || user.refreshToken !== refreshToken) {
-            return res.status(401).json({ message: "Invalid refresh token" });
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found",
+            });
         }
-        console.log("User found:", user);
-        const newAccessToken = jwt.sign(    
-            { id: user._id, email: user.email },
+
+        if (user.refreshToken !== refreshToken) {
+
+            return res.status(401).json({
+                message: "Invalid refresh token",
+            });
+        }
+
+        const newAccessToken = jwt.sign(
+            {
+                id: user._id,
+                email: user.email,
+            },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "15m" }
+            {
+                expiresIn: "15m",
+            }
         );
 
         res.cookie("accessToken", newAccessToken, {
@@ -58,6 +93,10 @@ export const authMiddleware = async (req, res, next) => {
 
         return next();
     } catch (err) {
-        return res.status(401).json({ message: "Authentication failed" });
+
+        return res.status(500).json({
+            message: "Authentication failed",
+            error: err.message,
+        });
     }
 };

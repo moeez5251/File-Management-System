@@ -6,29 +6,45 @@ import router from "./routes/upload.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { authMiddleware } from "./middleware/auth.js";
+import filesRouter from "./routes/files.js";
+
 dotenv.config();
 
 const app = express();
-const unprotectedRoutes = ["/api/user/login", "/api/user/register"];
+const unprotectedRoutes = ["/api/user/login", "/api/user/register","/"];
 
-// app.use((req, res, next) => {
-//     if (unprotectedRoutes.includes(req.url)) {
-//         next();
-//     } else {
-//         authMiddleware(req, res, next);
-//     }
-// });
+
+const allowedOrigins = process.env.ORIGINS
+    ? process.env.ORIGINS.replace(/[\[\]']/g, "").split(",").map(o => o.trim())
+    : [];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
 }));
-connectDB();
 
 app.use(cookieParser());
 app.use(express.json());
 
+app.use((req, res, next) => {
+    if (unprotectedRoutes.includes(req.path)) {
+        next();
+    } else {
+        authMiddleware(req, res, next);
+    }
+});
+
+connectDB();
+
 app.use("/api/user", userroutes);
 app.use("/api/upload", router);
+app.use("/api/files", filesRouter);
 app.get("/", (req, res) => {
     res.send("API Running 🚀");
 });
