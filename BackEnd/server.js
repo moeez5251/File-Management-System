@@ -11,7 +11,7 @@ import filesRouter from "./routes/files.js";
 dotenv.config();
 
 const app = express();
-const unprotectedRoutes = ["/api/user/login", "/api/user/register","/"];
+const unprotectedRoutes = ["/api/user/login", "/api/user/register","/","/api/files/all"];
 
 
 const allowedOrigins = process.env.ORIGINS

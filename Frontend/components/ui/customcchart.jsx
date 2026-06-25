@@ -10,83 +10,62 @@ import {
     CardContent,
 } from "@/components/ui/card"
 import React, { useEffect, useState } from 'react'
-import { Client, Storage, Account } from 'appwrite';
-const CustomChart = () => {
-    const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-    const storage = new Storage(client);
-    const [percentage, setPercentage] = useState(0);
-
+const CustomChart = ({ total, used }) => {
+    const [isMounted, setIsMounted] = useState(false);
     useEffect(() => {
-        (async function fetchStorageUsage() {
-            const accountId = localStorage.getItem("accountid");
-
-            try {
-                const response = await storage.listFiles(
-                    process.env.NEXT_PUBLIC_BUCKET_ID
-                );
-                const filteredFiles = response.files.filter(file => {
-                    const match = file.$permissions[0].match(/user:([a-zA-Z0-9]+)/);
-                    return match && match[1] === accountId;
-                });
-
-
-                const totalspace = filteredFiles.reduce((total, file) => total + file.sizeOriginal, 0);
-                const totalBytes = 2 * 1073741824; // 2GB in bytes
-
-                const per = totalspace > 0 ? ((totalspace / totalBytes) * 100).toFixed(2) : "0";
-                setPercentage(Number(per));
-            } catch (error) {
-                setPercentage(0);
-            }
-        })();
+        setIsMounted(true);
     }, []);
 
+    const percentage = total && typeof used === 'number' ? (used / total) * 100 : 0;
     const chartData = [{ name: "Used Space", value: percentage, fill: "#fff" }];
 
     return (
         <Card className="flex flex-row bg-[#fa7275] items-center gap-3 md:gap-6 justify-center px-1 md:px-4 py-6 shadow-2xlz">
             <CardContent className="flex-1 pb-0 bg-[#fa7275] flex items-center justify-center">
-                <div className="relative">
-                    <RadialBarChart
-                        width={170}
-                        height={170}
-                        innerRadius={80}
-                        outerRadius={130}
-                        startAngle={270}
-                        endAngle={percentage ? 270 - (percentage / 100) * 360 : 270} // Prevent NaN
-                        data={chartData}
-                    >
-                        <RadialBar
+                <div className="relative w-[170px] h-[170px] flex items-center justify-center">
+                    {isMounted ? (
+                        <RadialBarChart
+                            width={170}
+                            height={170}
+                            innerRadius={80}
+                            outerRadius={130}
+                            startAngle={270}
+                            endAngle={percentage ? 270 - (percentage / 100) * 360 : 270}
                             data={chartData}
-                            dataKey="value"
-                            cornerRadius={30}
-                            barSize={10}
-                        />
-                        <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                            <Label
-                                content={({ viewBox }) => {
-                                    if (viewBox?.cx && viewBox?.cy) {
-                                        return (
-                                            <text
-                                                x={viewBox.cx}
-                                                y={viewBox.cy}
-                                                textAnchor="middle"
-                                                dominantBaseline="middle"
-                                            >
-                                                <tspan x={viewBox.cx} y={viewBox.cy} className="fill-white text-4xl font-bold">
-                                                    {percentage}%
-                                                </tspan>
-                                                <tspan x={viewBox.cx} y={viewBox.cy + 24} className="fill-white text-lg">
-                                                    Used
-                                                </tspan>
-                                            </text>
-                                        );
-                                    }
-                                }}
+                        >
+                            <RadialBar
+                                data={chartData}
+                                dataKey="value"
+                                cornerRadius={30}
+                                barSize={10}
                             />
-                        </PolarRadiusAxis>
-                    </RadialBarChart>
+                            <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                                <Label
+                                    content={({ viewBox }) => {
+                                        if (viewBox?.cx && viewBox?.cy) {
+                                            return (
+                                                <text
+                                                    x={viewBox.cx}
+                                                    y={viewBox.cy}
+                                                    textAnchor="middle"
+                                                    dominantBaseline="middle"
+                                                >
+                                                    <tspan x={viewBox.cx} y={viewBox.cy} className="fill-white text-4xl font-bold">
+                                                        {percentage.toFixed(1)}%
+                                                    </tspan>
+                                                    <tspan x={viewBox.cx} y={viewBox.cy + 24} className="fill-white text-lg">
+                                                        Used
+                                                    </tspan>
+                                                </text>
+                                            );
+                                        }
+                                    }}
+                                />
+                            </PolarRadiusAxis>
+                        </RadialBarChart>
+                    ) : (
+                        <div className="w-[170px] h-[170px]" />
+                    )}
                 </div>
             </CardContent>
 

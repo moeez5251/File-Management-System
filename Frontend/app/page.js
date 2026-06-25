@@ -1,9 +1,9 @@
 "use client"
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState, } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
-import { Client, Storage } from 'appwrite';
+import { Client, Account, ID, Storage } from 'appwrite';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 import {
   Dialog,
@@ -12,9 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
+import CustomChart from '@/components/ui/customcchart';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,23 +27,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from 'next/image';
-import { Input } from '@/components/ui/input';
-import { Copy } from 'lucide-react';
+import { Copy, Loader2 } from "lucide-react"
+import UploadDialog from '@/components/uploadingdialog';
 const User = () => {
   const router = useRouter();
   const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
     .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
+  const account = new Account(client);
   const storage = new Storage(client);
-  const [files, setfiles] = useState([])
+  const [opening, setopening] = useState(false)
+  const [file, setfile] = useState(null)
+  const [files, setFiles] = useState([])
+  const ref = useRef()
   const [docfiles, setdocfiles] = useState([])
+  const [renamedialog, setrenamedialog] = useState(false)
+  const [renameinp, setRenameinp] = useState("")
   const [share, setShare] = useState(false)
   const [sharedet, setSharedet] = useState("")
+  const [owner, setowner] = useState("")
   const [docfilesize, setdocfilesize] = useState({
     size: "",
     lastupdated: ""
   })
+  const [deletedialog, setdeletedialog] = useState(false)
   const [Details, setDetails] = useState(false)
   const [Det, setDet] = useState("")
+  const [upload, setupload] = useState(false)
   const [imagefiles, setimagefiles] = useState([])
   const [imgsize, setimgsize] = useState({
     size: "0 B",
@@ -57,7 +69,20 @@ const User = () => {
     lastupdated: ""
   })
   const handleclick = () => {
-    router.push("/login");
+    setopening(true)
+  }
+  const handlechange = (e) => {
+    if (!e.target.files[0]) { return }
+    if ((e.target.files[0].size / 1048576) > 50) {
+      toast("File size should be less than 50 mb")
+      ref.current.value = ""
+      return
+    }
+    setfile(e.target.files[0])
+  }
+  const handlelogout = async () => {
+    // const a = await account.deleteSessions();
+    // router.replace("/login");
   }
   function formatDate(isoString) {
     const date = new Date(isoString);
@@ -77,107 +102,207 @@ const User = () => {
   }
 
   const handlefilegetting = async () => {
+    console.log("test")
     try {
-      const response = await storage.listFiles(
-        process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
-      );
-      setfiles(response.files)
+      const response = await fetch("http://localhost:8000/api/files/byid", {
+        credentials: "include"
+      })
+      const data = await response.json()
+      const userFiles = data.files;
+
+      setFiles(userFiles)
+      setowner(data.username)
       const documentMimeTypes = [
-        "application/pdf", // PDF
-        "application/msword", // Word (.doc)
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (.docx)
-        "application/vnd.ms-excel", // Excel (.xls)
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel (.xlsx)
-        "application/vnd.ms-powerpoint", // PowerPoint (.ppt)
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (.pptx)
-        "text/plain", // Plain text (.txt)
-        "application/rtf", // Rich Text Format (.rtf)
-        "application/vnd.oasis.opendocument.text", // OpenDocument Text (.odt)
-        "application/vnd.oasis.opendocument.spreadsheet" // OpenDocument Spreadsheet (.ods)
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "text/plain",
+        "application/rtf",
+        "application/vnd.oasis.opendocument.text",
+        "application/vnd.oasis.opendocument.spreadsheet"
       ];
-      const filteredfiles = response.files.filter(file => documentMimeTypes.includes(file.mimeType))
-      setdocfiles(
-        filteredfiles)
+
       const imageMimeTypes = [
-        "image/jpeg", // JPEG (.jpg, .jpeg)
-        "image/png", // PNG (.png)
-        "image/gif", // GIF (.gif)
-        "image/bmp", // Bitmap (.bmp)
-        "image/webp", // WebP (.webp)
-        "image/tiff", // TIFF (.tiff)
-        "image/svg+xml", // SVG (.svg)
-        "image/vnd.adobe.photoshop", // Photoshop (.psd)
-        "image/x-icon", // Icon (.ico)
-        "image/heif", // HEIF (.heif)
-        "image/heic", // HEIC (.heic)
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/webp",
+        "image/tiff",
+        "image/svg+xml",
+        "image/vnd.adobe.photoshop",
+        "image/x-icon",
+        "image/heif",
+        "image/heic",
       ];
-      const filteredimagefiles = response.files.filter(file => imageMimeTypes.includes(file.mimeType))
-      setimagefiles(
-        filteredimagefiles)
+
       const mediaMimeTypes = [
-        "audio/mpeg", // MP3 (.mp3)
-        "audio/wav", // WAV (.wav)
-        "audio/ogg", // OGG (.ogg)
-        "audio/flac", // FLAC (.flac)
-        "audio/aac", // AAC (.aac)
-        "audio/webm", // WebM (.webm)
-        "video/mp4", // MP4 (.mp4)
-        "video/webm", // WebM (.webm)
-        "video/ogg", // OGG (.ogv)
-        "video/x-msvideo", // AVI (.avi)
-        "video/quicktime", // MOV (.mov)
-        "video/x-matroska", // MKV (.mkv)
-        "video/3gpp", // 3GP (.3gp)
-        "video/flv", // FLV (.flv)
+        "audio/mpeg",
+        "audio/wav",
+        "audio/ogg",
+        "audio/flac",
+        "audio/aac",
+        "audio/webm",
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "video/x-msvideo",
+        "video/quicktime",
+        "video/x-matroska",
+        "video/3gpp",
+        "video/flv",
       ];
-      const filteredmediafiles = response.files.filter(file => mediaMimeTypes.includes(file.mimeType))
+
+      setdocfiles(
+        userFiles.filter(file => documentMimeTypes.includes(file.mimetype))
+      );
+
+      setimagefiles(
+        userFiles.filter(file => imageMimeTypes.includes(file.mimetype))
+      );
+
       setmediafiles(
-        filteredmediafiles)
-      const otherFiles = response.files.filter(file => {
-        return !documentMimeTypes.includes(file.mimeType) &&
-          !imageMimeTypes.includes(file.mimeType) &&
-          !mediaMimeTypes.includes(file.mimeType);
-      });
-      setOther(otherFiles);
+        userFiles.filter(file => mediaMimeTypes.includes(file.mimetype))
+      );
+
+      setOther(
+        userFiles.filter(
+          file =>
+            !documentMimeTypes.includes(file.mimetype) &&
+            !imageMimeTypes.includes(file.mimetype) &&
+            !mediaMimeTypes.includes(file.mimetype)
+        )
+      );
 
     } catch (error) {
-      toast("Failed to get files")
+      toast("Failed to get files");
     }
+  };
+
+  const handlerename = async () => {
+    if (renameinp === "") {
+      return
+    }
+    const renameid = sessionStorage.getItem("renameid")
+    if (renameid) {
+      await fetch(`http://localhost:8000/api/files/rename/${renameid}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: renameinp
+        })
+      })
+    }
+    setRenameinp("")
+    setrenamedialog(false)
+    handlefilegetting()
+    sessionStorage.clear()
+  }
+  const handledeletefile = async () => {
+    const fileid = sessionStorage.getItem("moveid")
+    await fetch(`http://localhost:8000/api/files/delete/${fileid}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      })
+    setdeletedialog(false)
+    handlefilegetting()
+    sessionStorage.clear()
+    toast("File deleted successfully")
   }
   useEffect(() => {
-    if (docfiles.length === 0 && imagefiles.length === 0 && mediafiles.length === 0 && other.length === 0) {
-      handlefilegetting()
+    if (file) {
+      setupload(true)
+      setopening(false)
+      const formData = new FormData()
+      formData.append("file", file)
+      fetch("http://localhost:8000/api/upload/file",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }).then(e => {
+          setupload(false)
+          toast("File uploaded successfully")
+          handlefilegetting()
+          setfile(null)
+
+        })
+        .catch(e => {
+          toast("File upload failed")
+          setupload(false)
+          setfile(null)
+        })
     }
+    return () => {
+
+    }
+    // Disable the exhaustive-deps warning
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file])
+  useEffect(() => {
+    console.l
     if (docfiles.length > 0) {
-      const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = docfiles.reduce((total, file) => total + file.size, 0);
+      const lastupdated = docfiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setdocfilesize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
       })
     }
+    else {
+      setdocfilesize({
+        size: "0 KB",
+        lastupdated: "-"
+      })
+    }
     if (imagefiles.length > 0) {
-      const totalsize = imagefiles.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = imagefiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = imagefiles.reduce((total, file) => total + file.size, 0);
+      const lastupdated = imagefiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setimgsize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
       })
     }
+    else {
+      setimgsize({
+        size: "0 KB",
+        lastupdated: "-"
+      })
+    }
     if (mediafiles.length > 0) {
-      const totalsize = mediafiles.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = mediafiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = mediafiles.reduce((total, file) => total + file.size, 0);
+      const lastupdated = mediafiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setMediasize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
       })
     }
+    else {
+      setMediasize({
+        size: "0 KB",
+        lastupdated: "-"
+      })
+    }
     if (other.length > 0) {
-      const totalsize = other.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = other.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = other.reduce((total, file) => total + file.size, 0);
+      const lastupdated = other.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setothersize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
+      })
+    }
+    else {
+      setothersize({
+        size: "0 KB",
+        lastupdated: "-"
       })
     }
     return () => {
@@ -185,32 +310,36 @@ const User = () => {
     }
     // Disable the exhaustive-deps warning
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docfiles, imagefiles, mediafiles, other])
-  useEffect(() => {
-    const unsubscribe = client.subscribe("files", (e) => {
-      handlefilegetting();
-    });
-
-    return () => {
-      unsubscribe();
-    };
-    // Disable the exhaustive-deps warning
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    router.prefetch("/login")
-  
-    return () => {
-      
-    }
-  }, [router])
-  
+  }, [files])
   const handlesidebar = () => {
-
     document.querySelector(".sidebar").classList.toggle("left-0");
   }
 
+
+  useEffect(() => {
+    router.prefetch("/")
+    handlefilegetting()
+    return () => {
+
+    }
+  }, [router])
+
+
+
+  useEffect(() => {
+    window.addEventListener("dragover", e => e.preventDefault())
+    window.addEventListener("drop", e => {
+      e.preventDefault()
+      const file = e.dataTransfer.files[0];
+      setfile(file)
+    })
+    return () => {
+      window.removeEventListener("dragover", e => e.preventDefault())
+      window.removeEventListener("drop", e => e.preventDefault())
+      setfile(null)
+
+    }
+  }, [])
 
   return (
     <div className='h-[100vh] '>
@@ -222,16 +351,16 @@ const User = () => {
           <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
 
             Sign In</Button>
-          <Button onClick={() => router.push("/signup")}  className="flex items-center bg-white text-black px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base hover:bg-white border border-white hover:border-black ">
+          <Button onClick={() => router.push("/signup")} className="flex items-center bg-white text-black px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base hover:bg-white border border-white hover:border-black ">
 
             Sign Up</Button>
         </div>
       </div>
       <Tabs defaultValue="dashboard" className="h-full w-[94%] relative top-4  mt-6 lg:mx-6  lg:flex lg:items-start block mx-auto flex-row ">
         <div className='sidebar w-[25%] absolute -left-full z-50 transition-all lg:relative lg:left-0'>
-          <TabsList className="flex flex-col gap-2 h-fit bg-white py-3 lg:bg-transparent">
+          <TabsList className="flex flex-col gap-2 h-fit bg-white p-3 lg:bg-transparent">
 
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -251,7 +380,7 @@ const User = () => {
                 />
               </svg>  Dashboard
             </TabsTrigger>
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -292,7 +421,7 @@ const User = () => {
                 />
               </svg> Documents
             </TabsTrigger>
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Images" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -331,7 +460,7 @@ const User = () => {
                 />
               </svg>  Images
             </TabsTrigger>
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Media" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -364,7 +493,7 @@ const User = () => {
               </svg>Media
             </TabsTrigger>
             <TabsTrigger
-              className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" onClick={handlefilegetting} value="Other" >
+              className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Other" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={20}
@@ -402,7 +531,7 @@ const User = () => {
         </div>
         <div className='relative lg:w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
           <TabsContent className="flex p-5 md:p-8 gap-6 md:gap-10 items-center flex-col justify-center" value="dashboard">
-
+          
             <div className='grid grid-cols-1 justify-items-center md:grid-cols-2 gap-10'>
               <div className='bg-white w-76 md:w-60 h-60 p-10 relative rounded-3xl'>
                 <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
@@ -443,7 +572,7 @@ const User = () => {
               <div className='flex  items-center gap-2 md:gap-0 justify-between'>
                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Documents</h1>
                 <div className='block'>
-                  <TabsList className="sm:flex hidden gap-5 bg-transparent" >
+                  <TabsList className="sm:flex gap-5 bg-transparent hidden" >
 
                     <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -536,6 +665,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -558,27 +695,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -634,7 +774,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -657,26 +804,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -743,12 +894,9 @@ const User = () => {
                     <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                       <div className='flex items-stretch justify-between'>
 
-
                         <div className="logo w-16 h-16 object-contain">
-                          <Image priority
-                            width={100}
-                            height={100}
-                            src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                          <Image priority width={100} height={100}
+                            src={e.url}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
                           />
@@ -778,6 +926,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -800,26 +956,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -835,10 +995,8 @@ const User = () => {
 
 
                         <div className="logo w-14 h-14 object-contain">
-                          <Image priority
-                            src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
-                            width={100}
-                            height={100}
+                          <Image priority width={100} height={100}
+                            src={e.url}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
                           />
@@ -868,6 +1026,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -890,26 +1056,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1017,7 +1187,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1040,27 +1217,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1116,6 +1296,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1138,26 +1326,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1266,7 +1458,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1289,27 +1488,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1365,7 +1567,14 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("renameid", e._id)
+                                setrenamedialog(true)
+                                setRenameinp(e.name)
+                              }
+                              } data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1388,27 +1597,30 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                sessionStorage.setItem("moveid", e._id)
+                                setdeletedialog(true)
+                              }} data-id={e.$id} className="py-2">
+                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
+                                Move to Trash
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1420,6 +1632,124 @@ const User = () => {
           </TabsContent>
         </div>
       </Tabs>
+
+      <Dialog open={opening} onOpenChange={setopening}>
+        <DialogContent className="max-w-lg bg-white p-6 rounded-2xl shadow-xl fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/4">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-xl font-semibold">Choose or drop file here</DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-center text-gray-500 mb-4">
+            Upload your file easily by dragging it into the area below or by clicking the button to browse.
+          </DialogDescription>
+          <form className="flex flex-col items-center justify-center w-full h-fit">
+            <label htmlFor="file" className="cursor-pointer bg-gray-100 p-10 rounded-2xl border-2 border-dashed border-gray-400 shadow-md w-full flex flex-col items-center gap-3 transition-all hover:bg-gray-200">
+              <svg className="h-12 fill-gray-500" viewBox="0 0 640 512">
+                <path d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"></path>
+              </svg>
+              <p className="text-gray-700 font-medium">Drag & Drop</p>
+              <p className="text-gray-500">or</p>
+              <span className="bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-300 hover:bg-gray-900">Browse file</span>
+            </label>
+            <Input
+              ref={ref}
+              onChange={handlechange}
+              type="file"
+              id="file"
+              className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+            />
+
+          </form>
+          <button onClick={() => setopening(false)} className='absolute top-3 right-3 bg-gray-300 p-2 rounded-full shadow-md hover:bg-gray-400 transition-all cursor-pointer z-10'>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={20}
+              height={20}
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="black"
+                fillRule="evenodd"
+                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={renamedialog} onopenchange={setrenamedialog}>
+        <DialogContent className="w-80 rounded-3xl h-64" >
+          <DialogHeader className="w-full">
+            <DialogTitle className="text-center">Rename</DialogTitle>
+
+          </DialogHeader>
+          <DialogDescription className="flex flex-col gap-5">
+            <input onChange={(e) => { setRenameinp(e.target.value) }} value={renameinp} className=' w-full px-4 py-4 rounded-full shadow-2xl outline-none text-black' type="text" />
+            <Button onClick={handlerename} className="flex items-center bg-[#fa7275] w-full px-8 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">Save</Button>
+          </DialogDescription>
+          <button onClick={() => { setrenamedialog(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={15}
+              height={15}
+              fill="none"
+              className="injected-svg"
+              color="black"
+              data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="black"
+                fillRule="evenodd"
+                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+
+
+          <DialogFooter className="block text-center text-sm text-[#fa7275]">Don&apos;t edit file extension</DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={deletedialog} onopenchange={setdeletedialog}>
+        <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
+          <DialogHeader className="w-full">
+            <DialogTitle className="text-center">Move to Trash</DialogTitle>
+
+          </DialogHeader>
+          <DialogDescription className="flex flex-col gap-5 my-3">
+            <span className='text-black text-base text-center'>
+              Do You really want to delete this file ?
+            </span>
+            <span className='flex w-full justify-around items-center'>
+
+              <Button onClick={() => { setdeletedialog(false) }} className="flex items-center border-none outline-none shadow-none bg-transparent text-black cursor-pointer text-lg hover:bg-transparent">cancel</Button>
+              <Button onClick={handledeletefile} className="flex items-center bg-[#fa7275] w-fit px-8 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">Move</Button>
+            </span>
+          </DialogDescription>
+          <button onClick={() => { setdeletedialog(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={15}
+              height={15}
+              fill="none"
+              className="injected-svg"
+              color="black"
+              data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="black"
+                fillRule="evenodd"
+                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={Details} onopenchange={setDetails}>
         <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
           <DialogHeader className="w-full">
@@ -1447,7 +1777,7 @@ const User = () => {
               </span>
               <span className='flex flex-col gap-2'>
                 <span className='font-semibold text-black'>{Det.name}</span>
-                <span>{formatDate(Det.$updatedAt)} </span>
+                <span>{formatDate(Det.updatedAt)} </span>
               </span>
             </span>
             <span className='flex flex-row  gap-10 my-5'>
@@ -1455,11 +1785,13 @@ const User = () => {
                 <span>Format:</span>
                 <span>Dimension:</span>
                 <span>Last modified:</span>
+                <span>Uploaded By</span>
               </span>
               <span className='flex gap-3 flex-col'>
                 <span className='text-black font-semibold'>{Det.name ? Det.name.split(".").pop() : ""}</span>
-                <span className='text-black font-semibold'>{formatFileSize(Det.sizeOriginal)}</span>
-                <span className='text-black font-semibold'>{formatDate(Det.$updatedAt)}</span>
+                <span className='text-black font-semibold'>{formatFileSize(Det.size)}</span>
+                <span className='text-black font-semibold'>{formatDate(Det.updatedAt)}</span>
+                <span className='text-black font-semibold'>{owner}</span>
               </span>
 
 
@@ -1486,7 +1818,7 @@ const User = () => {
           </button>
         </DialogContent>
       </Dialog>
-
+      <UploadDialog open={upload} onOpenChange={setupload} />
       <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1533,11 +1865,11 @@ const User = () => {
               </span>
               <span className='flex flex-col gap-2'>
                 <span className='font-semibold text-black'>{sharedet.name}</span>
-                <span>{formatDate(sharedet.$updatedAt)} </span>
+                <span>{formatDate(sharedet.updatedAt)} </span>
               </span>
             </span>
             <span className='flex  items-center justify-center gap-2'>
-              <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet.$id} type="text" readOnly />
+              <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet._id} type="text" readOnly />
               <Button onClick={() => {
                 navigator.clipboard.writeText(document.querySelector(".input-share").value)
                 toast("Copied to clipboard")
@@ -1568,6 +1900,7 @@ const User = () => {
         </DialogContent>
       </Dialog>
     </div>
+
 
   )
 }

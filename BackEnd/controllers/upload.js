@@ -3,8 +3,6 @@ import File from "../models/file.js";
 export const uploadFile = async (req, res) => {
   try {
     const file = req.file;
-    console.log("Received file:", file);
-    console.log(req.user)
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
@@ -18,14 +16,15 @@ export const uploadFile = async (req, res) => {
       display_name: file.originalname,
       resource_type: "auto",
     });
-    console.log("File uploaded to Cloudinary:", result);
+    console.log(result)
     const files = new File({
       name: file.originalname,
       url: result.secure_url,
       public_id: result.public_id,
       owner: req.user?.id || "test",
       size: file.size,
-      mimetype: file.mimetype
+      mimetype: file.mimetype,
+      resource_type: result.resource_type
     });
     await files.save();
     res.json({
