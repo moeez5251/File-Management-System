@@ -1,9 +1,8 @@
 "use client"
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
-import { Client, Account, ID, Storage } from 'appwrite';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 import {
   Dialog,
@@ -17,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
-import CustomChart from '@/components/ui/customcchart';
+import { io } from "socket.io-client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,32 +26,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from 'next/image';
-import { Copy, Loader2 } from "lucide-react"
-import UploadDialog from '@/components/uploadingdialog';
-const User = () => {
+import { Copy } from "lucide-react"
+const Home = () => {
   const router = useRouter();
-  const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
-    .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-  const account = new Account(client);
-  const storage = new Storage(client);
-  const [opening, setopening] = useState(false)
-  const [file, setfile] = useState(null)
   const [files, setFiles] = useState([])
-  const ref = useRef()
   const [docfiles, setdocfiles] = useState([])
-  const [renamedialog, setrenamedialog] = useState(false)
-  const [renameinp, setRenameinp] = useState("")
   const [share, setShare] = useState(false)
   const [sharedet, setSharedet] = useState("")
-  const [owner, setowner] = useState("")
+  const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL);
   const [docfilesize, setdocfilesize] = useState({
     size: "",
     lastupdated: ""
   })
-  const [deletedialog, setdeletedialog] = useState(false)
   const [Details, setDetails] = useState(false)
   const [Det, setDet] = useState("")
-  const [upload, setupload] = useState(false)
   const [imagefiles, setimagefiles] = useState([])
   const [imgsize, setimgsize] = useState({
     size: "0 B",
@@ -68,22 +55,7 @@ const User = () => {
     size: "0 B",
     lastupdated: ""
   })
-  const handleclick = () => {
-    setopening(true)
-  }
-  const handlechange = (e) => {
-    if (!e.target.files[0]) { return }
-    if ((e.target.files[0].size / 1048576) > 50) {
-      toast("File size should be less than 50 mb")
-      ref.current.value = ""
-      return
-    }
-    setfile(e.target.files[0])
-  }
-  const handlelogout = async () => {
-    // const a = await account.deleteSessions();
-    // router.replace("/login");
-  }
+
   function formatDate(isoString) {
     const date = new Date(isoString);
     const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -102,16 +74,13 @@ const User = () => {
   }
 
   const handlefilegetting = async () => {
-    console.log("test")
     try {
-      const response = await fetch("http://localhost:8000/api/files/byid", {
+      const response = await fetch("http://localhost:8000/api/files/all", {
         credentials: "include"
       })
       const data = await response.json()
-      const userFiles = data.files;
-
+      const userFiles = data;
       setFiles(userFiles)
-      setowner(data.username)
       const documentMimeTypes = [
         "application/pdf",
         "application/msword",
@@ -182,73 +151,19 @@ const User = () => {
       toast("Failed to get files");
     }
   };
+ useEffect(() => {
+    socket.on("filesUpdated", (data) => {
 
-  const handlerename = async () => {
-    if (renameinp === "") {
-      return
-    }
-    const renameid = sessionStorage.getItem("renameid")
-    if (renameid) {
-      await fetch(`http://localhost:8000/api/files/rename/${renameid}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: renameinp
-        })
-      })
-    }
-    setRenameinp("")
-    setrenamedialog(false)
-    handlefilegetting()
-    sessionStorage.clear()
-  }
-  const handledeletefile = async () => {
-    const fileid = sessionStorage.getItem("moveid")
-    await fetch(`http://localhost:8000/api/files/delete/${fileid}`,
-      {
-        method: "DELETE",
-        credentials: "include",
-      })
-    setdeletedialog(false)
-    handlefilegetting()
-    sessionStorage.clear()
-    toast("File deleted successfully")
-  }
-  useEffect(() => {
-    if (file) {
-      setupload(true)
-      setopening(false)
-      const formData = new FormData()
-      formData.append("file", file)
-      fetch("http://localhost:8000/api/upload/file",
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }).then(e => {
-          setupload(false)
-          toast("File uploaded successfully")
-          handlefilegetting()
-          setfile(null)
+     handlefilegetting()
+    });
 
-        })
-        .catch(e => {
-          toast("File upload failed")
-          setupload(false)
-          setfile(null)
-        })
-    }
     return () => {
+      socket.off("filesUpdated");
+    };
+  }, []);
 
-    }
-    // Disable the exhaustive-deps warning
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file])
+
   useEffect(() => {
-    console.l
     if (docfiles.length > 0) {
       const totalsize = docfiles.reduce((total, file) => total + file.size, 0);
       const lastupdated = docfiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
@@ -326,20 +241,7 @@ const User = () => {
 
 
 
-  useEffect(() => {
-    window.addEventListener("dragover", e => e.preventDefault())
-    window.addEventListener("drop", e => {
-      e.preventDefault()
-      const file = e.dataTransfer.files[0];
-      setfile(file)
-    })
-    return () => {
-      window.removeEventListener("dragover", e => e.preventDefault())
-      window.removeEventListener("drop", e => e.preventDefault())
-      setfile(null)
 
-    }
-  }, [])
 
   return (
     <div className='h-[100vh] '>
@@ -348,7 +250,7 @@ const User = () => {
         <Image priority height={100} width={100} className='w-30 md:w-42 ' src="/User.png" alt="" />
         <div className='flex items-center gap-5'>
 
-          <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+          <Button onClick={() => router.push("/login")} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
 
             Sign In</Button>
           <Button onClick={() => router.push("/signup")} className="flex items-center bg-white text-black px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base hover:bg-white border border-white hover:border-black ">
@@ -665,14 +567,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -700,14 +594,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -774,14 +660,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -809,14 +687,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -926,14 +796,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -961,14 +823,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1026,14 +880,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1061,14 +907,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1187,14 +1025,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1222,14 +1052,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1296,14 +1118,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1331,14 +1145,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1458,14 +1264,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1493,14 +1291,6 @@ const User = () => {
                               } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1567,14 +1357,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("renameid", e._id)
-                                setrenamedialog(true)
-                                setRenameinp(e.name)
-                              }
-                              } data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Rename.png" alt="Rename" /> Rename</DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1603,14 +1385,6 @@ const User = () => {
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                sessionStorage.setItem("moveid", e._id)
-                                setdeletedialog(true)
-                              }} data-id={e.$id} className="py-2">
-                                <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
-                                Move to Trash
-                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                           <span>{formatFileSize(e.size)}</span>
@@ -1633,122 +1407,9 @@ const User = () => {
         </div>
       </Tabs>
 
-      <Dialog open={opening} onOpenChange={setopening}>
-        <DialogContent className="max-w-lg bg-white p-6 rounded-2xl shadow-xl fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/4">
-          <DialogHeader className="text-center">
-            <DialogTitle className="text-xl font-semibold">Choose or drop file here</DialogTitle>
-          </DialogHeader>
-          <DialogDescription className="text-center text-gray-500 mb-4">
-            Upload your file easily by dragging it into the area below or by clicking the button to browse.
-          </DialogDescription>
-          <form className="flex flex-col items-center justify-center w-full h-fit">
-            <label htmlFor="file" className="cursor-pointer bg-gray-100 p-10 rounded-2xl border-2 border-dashed border-gray-400 shadow-md w-full flex flex-col items-center gap-3 transition-all hover:bg-gray-200">
-              <svg className="h-12 fill-gray-500" viewBox="0 0 640 512">
-                <path d="M144 480C64.5 480 0 415.5 0 336c0-62.8 40.2-116.2 96.2-135.9c-.1-2.7-.2-5.4-.2-8.1c0-88.4 71.6-160 160-160c59.3 0 111 32.2 138.7 80.2C409.9 102 428.3 96 448 96c53 0 96 43 96 96c0 12.2-2.3 23.8-6.4 34.6C596 238.4 640 290.1 640 352c0 70.7-57.3 128-128 128H144zm79-217c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l39-39V392c0 13.3 10.7 24 24 24s24-10.7 24-24V257.9l39 39c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-80-80c-9.4-9.4-24.6-9.4-33.9 0l-80 80z"></path>
-              </svg>
-              <p className="text-gray-700 font-medium">Drag & Drop</p>
-              <p className="text-gray-500">or</p>
-              <span className="bg-gray-600 text-white px-4 py-2 rounded-lg transition duration-300 hover:bg-gray-900">Browse file</span>
-            </label>
-            <Input
-              ref={ref}
-              onChange={handlechange}
-              type="file"
-              id="file"
-              className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-            />
-
-          </form>
-          <button onClick={() => setopening(false)} className='absolute top-3 right-3 bg-gray-300 p-2 rounded-full shadow-md hover:bg-gray-400 transition-all cursor-pointer z-10'>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={20}
-              height={20}
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="black"
-                fillRule="evenodd"
-                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={renamedialog} onopenchange={setrenamedialog}>
-        <DialogContent className="w-80 rounded-3xl h-64" >
-          <DialogHeader className="w-full">
-            <DialogTitle className="text-center">Rename</DialogTitle>
-
-          </DialogHeader>
-          <DialogDescription className="flex flex-col gap-5">
-            <input onChange={(e) => { setRenameinp(e.target.value) }} value={renameinp} className=' w-full px-4 py-4 rounded-full shadow-2xl outline-none text-black' type="text" />
-            <Button onClick={handlerename} className="flex items-center bg-[#fa7275] w-full px-8 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">Save</Button>
-          </DialogDescription>
-          <button onClick={() => { setrenamedialog(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={15}
-              height={15}
-              fill="none"
-              className="injected-svg"
-              color="black"
-              data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="black"
-                fillRule="evenodd"
-                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
 
 
-          <DialogFooter className="block text-center text-sm text-[#fa7275]">Don&apos;t edit file extension</DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={deletedialog} onopenchange={setdeletedialog}>
-        <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
-          <DialogHeader className="w-full">
-            <DialogTitle className="text-center">Move to Trash</DialogTitle>
 
-          </DialogHeader>
-          <DialogDescription className="flex flex-col gap-5 my-3">
-            <span className='text-black text-base text-center'>
-              Do You really want to delete this file ?
-            </span>
-            <span className='flex w-full justify-around items-center'>
-
-              <Button onClick={() => { setdeletedialog(false) }} className="flex items-center border-none outline-none shadow-none bg-transparent text-black cursor-pointer text-lg hover:bg-transparent">cancel</Button>
-              <Button onClick={handledeletefile} className="flex items-center bg-[#fa7275] w-fit px-8 py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">Move</Button>
-            </span>
-          </DialogDescription>
-          <button onClick={() => { setdeletedialog(false) }} className='absolute top-3 cursor-pointer right-3 bg-gray-300  p-1 rounded-2xl z-40 '>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width={15}
-              height={15}
-              fill="none"
-              className="injected-svg"
-              color="black"
-              data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="black"
-                fillRule="evenodd"
-                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={Details} onopenchange={setDetails}>
         <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
@@ -1791,7 +1452,7 @@ const User = () => {
                 <span className='text-black font-semibold'>{Det.name ? Det.name.split(".").pop() : ""}</span>
                 <span className='text-black font-semibold'>{formatFileSize(Det.size)}</span>
                 <span className='text-black font-semibold'>{formatDate(Det.updatedAt)}</span>
-                <span className='text-black font-semibold'>{owner}</span>
+                <span className='text-black font-semibold'>{Det.owner?.name}</span>
               </span>
 
 
@@ -1818,7 +1479,6 @@ const User = () => {
           </button>
         </DialogContent>
       </Dialog>
-      <UploadDialog open={upload} onOpenChange={setupload} />
       <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1905,4 +1565,4 @@ const User = () => {
   )
 }
 
-export default User
+export default Home

@@ -46,7 +46,7 @@ const Login = () => {
                 setTruestate(false)
                 return
             }
-            router.push("/")
+            router.push("/user")
         } catch (err) {
             console.log(err)
             toast.error("Something went wrong")
@@ -108,7 +108,7 @@ const Login = () => {
                     </Button>
                 }
 
-                <div className='text-center w-full'>Want to share files without login ? <Link prefetch href="/shared" className='text-[#fa7275]'>Click here</Link></div>
+                <div className='text-center w-full'>New here ? Create an <Link prefetch href="/signup" className='text-[#fa7275]'>account</Link></div>
             </div>
 
         </div>

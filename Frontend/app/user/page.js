@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
-import { Client, Account, ID, Storage } from 'appwrite';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 import {
     Dialog,
@@ -31,10 +30,6 @@ import { Copy, Loader2 } from "lucide-react"
 import UploadDialog from '@/components/uploadingdialog';
 const User = () => {
     const router = useRouter();
-    const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-    const account = new Account(client);
-    const storage = new Storage(client);
     const [opening, setopening] = useState(false)
     const [file, setfile] = useState(null)
     const [files, setFiles] = useState([])
@@ -81,8 +76,10 @@ const User = () => {
         setfile(e.target.files[0])
     }
     const handlelogout = async () => {
-        // const a = await account.deleteSessions();
-        // router.replace("/login");
+        await fetch("http://localhost:8000/api/user/logout", {
+            credentials: "include"
+        })
+        router.replace("/login");
     }
     function formatDate(isoString) {
         const date = new Date(isoString);

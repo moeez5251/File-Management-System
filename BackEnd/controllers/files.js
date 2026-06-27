@@ -43,3 +43,15 @@ export const deletefile = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+export const shared=async (req, res)=>{
+    const { id } = req.params;
+    try {
+        const file = await File.findById(id);
+        if (!file) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        res.json(file);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

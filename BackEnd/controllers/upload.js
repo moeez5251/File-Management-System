@@ -16,7 +16,6 @@ export const uploadFile = async (req, res) => {
       display_name: file.originalname,
       resource_type: "auto",
     });
-    console.log(result)
     const files = new File({
       name: file.originalname,
       url: result.secure_url,
@@ -33,7 +32,6 @@ export const uploadFile = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("Error in uploading file:", err);
     res.status(500).json({ error: err.message });
   }
 };
