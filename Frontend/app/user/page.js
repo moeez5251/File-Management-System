@@ -79,7 +79,7 @@ const User = () => {
         await fetch("/api/user/logout", {
             credentials: "include"
         })
-        router.replace("/login");
+         window.location.href = "/login";
     }
     function formatDate(isoString) {
         const date = new Date(isoString);

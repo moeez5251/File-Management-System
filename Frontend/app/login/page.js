@@ -46,7 +46,7 @@ const Login = () => {
                 setTruestate(false)
                 return
             }
-            router.push("/user")
+             window.location.href = "/user";
         } catch (err) {
             console.log(err)
             toast.error("Something went wrong")
