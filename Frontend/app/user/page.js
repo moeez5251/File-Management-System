@@ -3,7 +3,6 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
-import { Client, Account, ID, Storage } from 'appwrite';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 import {
     Dialog,
@@ -27,26 +26,20 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from 'next/image';
-import { Copy } from "lucide-react"
+import { Copy, Loader2 } from "lucide-react"
+import UploadDialog from '@/components/uploadingdialog';
 const User = () => {
     const router = useRouter();
-    const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-    const account = new Account(client);
-    const storage = new Storage(client);
-    const [isValid, setIsValid] = useState(false);
     const [opening, setopening] = useState(false)
-    const [files, setfiles] = useState([])
     const [file, setfile] = useState(null)
+    const [files, setFiles] = useState([])
     const ref = useRef()
-    const [accountinfo, setaccountinfo] = useState("")
     const [docfiles, setdocfiles] = useState([])
     const [renamedialog, setrenamedialog] = useState(false)
     const [renameinp, setRenameinp] = useState("")
     const [share, setShare] = useState(false)
-    const [uploadingdetails, setuploadingdetails] = useState("")
-
     const [sharedet, setSharedet] = useState("")
+    const [owner, setowner] = useState("")
     const [docfilesize, setdocfilesize] = useState({
         size: "",
         lastupdated: ""
@@ -83,8 +76,17 @@ const User = () => {
         setfile(e.target.files[0])
     }
     const handlelogout = async () => {
-        const a = await account.deleteSessions();
-        router.replace("/login");
+        const logout = await fetch("/api/user/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include"
+        })
+        if (!logout.ok) {
+            return
+        }
+        window.location.href = "/login";
     }
     function formatDate(isoString) {
         const date = new Date(isoString);
@@ -104,30 +106,16 @@ const User = () => {
     }
 
     const handlefilegetting = async () => {
-        if (!accountinfo) return;
-
+        console.log("test")
         try {
-            // 1. Get All Files
-            const response = await storage.listFiles(process.env.NEXT_PUBLIC_BUCKET_ID);
-            const allFiles = response.files;
-
-            // 2. Utility: Extract userId from permissions safely
-            const getOwnerId = (file) => {
-                if (!file?.$permissions) return null;
-
-                for (const perm of file.$permissions) {
-                    if (typeof perm !== "string") continue;
-
-                    const match = perm.match(/user:([^"]+)/);
-                    if (match) return match[1];
-                }
-                return null;
-            };
-
-            const userFiles = allFiles.filter(
-                (file) => getOwnerId(file) === accountinfo.$id
-            );
-
+            const response = await fetch("/api/files/byid", {
+                credentials: "include"
+            })
+            const data = await response.json()
+            const userFiles = data.files;
+            
+            setFiles(userFiles)
+            setowner(data.username)
             const documentMimeTypes = [
                 "application/pdf",
                 "application/msword",
@@ -173,26 +161,24 @@ const User = () => {
                 "video/flv",
             ];
 
-            setfiles(allFiles);
-
             setdocfiles(
-                userFiles.filter(file => documentMimeTypes.includes(file.mimeType))
+                userFiles.filter(file => documentMimeTypes.includes(file.mimetype))
             );
 
             setimagefiles(
-                userFiles.filter(file => imageMimeTypes.includes(file.mimeType))
+                userFiles.filter(file => imageMimeTypes.includes(file.mimetype))
             );
 
             setmediafiles(
-                userFiles.filter(file => mediaMimeTypes.includes(file.mimeType))
+                userFiles.filter(file => mediaMimeTypes.includes(file.mimetype))
             );
 
             setOther(
                 userFiles.filter(
                     file =>
-                        !documentMimeTypes.includes(file.mimeType) &&
-                        !imageMimeTypes.includes(file.mimeType) &&
-                        !mediaMimeTypes.includes(file.mimeType)
+                        !documentMimeTypes.includes(file.mimetype) &&
+                        !imageMimeTypes.includes(file.mimetype) &&
+                        !mediaMimeTypes.includes(file.mimetype)
                 )
             );
 
@@ -207,12 +193,16 @@ const User = () => {
         }
         const renameid = sessionStorage.getItem("renameid")
         if (renameid) {
-
-            await storage.updateFile(
-                process.env.NEXT_PUBLIC_BUCKET_ID,
-                renameid,
-                renameinp,
-            );
+            await fetch(`/api/files/rename/${renameid}`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: renameinp
+                })
+            })
         }
         setRenameinp("")
         setrenamedialog(false)
@@ -221,10 +211,11 @@ const User = () => {
     }
     const handledeletefile = async () => {
         const fileid = sessionStorage.getItem("moveid")
-        await storage.deleteFile(
-            process.env.NEXT_PUBLIC_BUCKET_ID,
-            fileid
-        )
+        await fetch(`/api/files/delete/${fileid}`,
+            {
+                method: "DELETE",
+                credentials: "include",
+            })
         setdeletedialog(false)
         handlefilegetting()
         sessionStorage.clear()
@@ -234,24 +225,25 @@ const User = () => {
         if (file) {
             setupload(true)
             setopening(false)
-            storage.createFile(
-                process.env.NEXT_PUBLIC_BUCKET_ID,
-                ID.unique(),
-                file,
-                [],
-                e => setuploadingdetails(e)
-            ).then(e => {
-                setupload(false)
-                toast("File uploaded successfully")
-                handlefilegetting()
-                setfile(null)
-                setuploadingdetails("")
+            const formData = new FormData()
+            formData.append("file", file)
+            fetch("/api/upload/file",
+                {
+                    method: "POST",
+                    credentials: "include",
+                    body: formData,
+                }).then(e => {
+                    setupload(false)
+                    toast("File uploaded successfully")
+                    handlefilegetting()
+                    setfile(null)
 
-            }).catch(e => {
-                toast("File upload failed")
-                setupload(false)
-                setfile(null)
-            })
+                })
+                .catch(e => {
+                    toast("File upload failed")
+                    setupload(false)
+                    setfile(null)
+                })
         }
         return () => {
 
@@ -260,39 +252,61 @@ const User = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [file])
     useEffect(() => {
-        if (docfiles.length === 0 && imagefiles.length === 0 && mediafiles.length === 0 && other.length === 0) {
-            handlefilegetting()
-        }
+        console.l
         if (docfiles.length > 0) {
-            const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated = docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const totalsize = docfiles.reduce((total, file) => total + file.size, 0);
+            const lastupdated = docfiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
             setdocfilesize({
                 size: formatFileSize(totalsize),
                 lastupdated: formatDate(lastupdated)
             })
         }
+        else {
+            setdocfilesize({
+                size: "0 KB",
+                lastupdated: "-"
+            })
+        }
         if (imagefiles.length > 0) {
-            const totalsize = imagefiles.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated = imagefiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const totalsize = imagefiles.reduce((total, file) => total + file.size, 0);
+            const lastupdated = imagefiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
             setimgsize({
                 size: formatFileSize(totalsize),
                 lastupdated: formatDate(lastupdated)
             })
         }
+        else {
+            setimgsize({
+                size: "0 KB",
+                lastupdated: "-"
+            })
+        }
         if (mediafiles.length > 0) {
-            const totalsize = mediafiles.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated = mediafiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const totalsize = mediafiles.reduce((total, file) => total + file.size, 0);
+            const lastupdated = mediafiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
             setMediasize({
                 size: formatFileSize(totalsize),
                 lastupdated: formatDate(lastupdated)
             })
         }
+        else {
+            setMediasize({
+                size: "0 KB",
+                lastupdated: "-"
+            })
+        }
         if (other.length > 0) {
-            const totalsize = other.reduce((total, file) => total + file.sizeOriginal, 0);
-            const lastupdated = other.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+            const totalsize = other.reduce((total, file) => total + file.size, 0);
+            const lastupdated = other.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
             setothersize({
                 size: formatFileSize(totalsize),
                 lastupdated: formatDate(lastupdated)
+            })
+        }
+        else {
+            setothersize({
+                size: "0 KB",
+                lastupdated: "-"
             })
         }
         return () => {
@@ -300,42 +314,22 @@ const User = () => {
         }
         // Disable the exhaustive-deps warning
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [docfiles, imagefiles, mediafiles, other])
+    }, [files])
     const handlesidebar = () => {
         document.querySelector(".sidebar").classList.toggle("left-0");
     }
+
+
     useEffect(() => {
-        const cookieFallback = localStorage.getItem("cookieFallback");
-        if (!cookieFallback || cookieFallback === '[]') {
-            router.replace("/login");
-        } else {
-            setIsValid(true);
-            (async function name() {
-                const accountin = await account.get()
-                localStorage.setItem("accountid", accountin.$id)
-                setaccountinfo(accountin)
-            }
-                ())
-        }
-        return () => {
-        }
-        // Disable the exhaustive-deps warning
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router]);
-    useEffect(() => {
+        router.prefetch("/")
         handlefilegetting()
         return () => {
 
         }
-    }, [accountinfo])
-
-    useEffect(() => {
-        router.prefetch("/")
-
-        return () => {
-
-        }
     }, [router])
+
+
+
     useEffect(() => {
         window.addEventListener("dragover", e => e.preventDefault())
         window.addEventListener("drop", e => {
@@ -350,7 +344,7 @@ const User = () => {
 
         }
     }, [])
-    if (!isValid) return null;
+    // if (!isValid) return null;
 
     return (
         <div className='h-[100vh] '>
@@ -599,7 +593,7 @@ const User = () => {
                 <div className='relative lg:w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
                     <TabsContent className="flex p-5 md:p-8 gap-6 md:gap-10 items-center flex-col justify-center" value="dashboard">
                         <div className='rounded-3xl px-3'>
-                            <CustomChart />
+                            <CustomChart total={2 * 1024 * 1024 * 1024} used={files.reduce((total, file) => total + file.size, 0)} />
                         </div>
                         <div className='grid grid-cols-1 justify-items-center md:grid-cols-2 gap-10'>
                             <div className='bg-white w-76 md:w-60 h-60 p-10 relative rounded-3xl'>
@@ -735,7 +729,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -764,20 +758,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -785,14 +774,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -849,7 +838,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -878,20 +867,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -899,14 +883,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -973,10 +957,9 @@ const User = () => {
                                         <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                                             <div className='flex items-stretch justify-between'>
 
-
                                                 <div className="logo w-16 h-16 object-contain">
                                                     <Image priority width={100} height={100}
-                                                        src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                                                        src={e.url}
                                                         alt="File Preview"
                                                         className="w-full h-full rounded-full"
                                                     />
@@ -1007,7 +990,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -1036,20 +1019,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -1057,14 +1035,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1081,7 +1059,7 @@ const User = () => {
 
                                                 <div className="logo w-14 h-14 object-contain">
                                                     <Image priority width={100} height={100}
-                                                        src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                                                        src={e.url}
                                                         alt="File Preview"
                                                         className="w-full h-full rounded-full"
                                                     />
@@ -1112,7 +1090,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -1141,20 +1119,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -1162,14 +1135,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1278,7 +1251,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -1307,20 +1280,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -1328,14 +1296,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1392,7 +1360,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -1421,20 +1389,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -1442,14 +1405,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1559,7 +1522,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -1588,20 +1551,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -1609,14 +1567,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1673,7 +1631,7 @@ const User = () => {
                                                         <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                                                             <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("renameid", e.$id)
+                                                                sessionStorage.setItem("renameid", e._id)
                                                                 setrenamedialog(true)
                                                                 setRenameinp(e.name)
                                                             }
@@ -1702,20 +1660,15 @@ const User = () => {
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={
                                                                 () => {
-
-                                                                    const result = storage.getFileDownload(
-                                                                        process.env.NEXT_PUBLIC_BUCKET_ID,
-                                                                        e.$id
-                                                                    )
-                                                                    window.location.href = result
+                                                                    window.location.href = e.url
                                                                 }
-                                                            } data-id={e.$id} className="py-2">
+                                                            } data-id={e._id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                                                 Download
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem onClick={() => {
-                                                                sessionStorage.setItem("moveid", e.$id)
+                                                                sessionStorage.setItem("moveid", e._id)
                                                                 setdeletedialog(true)
                                                             }} data-id={e.$id} className="py-2">
                                                                 <Image priority width={30} height={30} src="/Drop-Down/Trash.png" alt="Move to Trash" />
@@ -1723,14 +1676,14 @@ const User = () => {
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
-                                                    <span>{formatFileSize(e.sizeOriginal)}</span>
+                                                    <span>{formatFileSize(e.size)}</span>
                                                 </div>
                                             </div>
                                             <div
                                                 className='font-semibold mt-4'>
                                                 {e.name}
                                             </div>
-                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                                            <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                                         </div>
                                     )
 
@@ -1887,7 +1840,7 @@ const User = () => {
                             </span>
                             <span className='flex flex-col gap-2'>
                                 <span className='font-semibold text-black'>{Det.name}</span>
-                                <span>{formatDate(Det.$updatedAt)} </span>
+                                <span>{formatDate(Det.updatedAt)} </span>
                             </span>
                         </span>
                         <span className='flex flex-row  gap-10 my-5'>
@@ -1895,11 +1848,13 @@ const User = () => {
                                 <span>Format:</span>
                                 <span>Dimension:</span>
                                 <span>Last modified:</span>
+                                <span>Uploaded By</span>
                             </span>
                             <span className='flex gap-3 flex-col'>
                                 <span className='text-black font-semibold'>{Det.name ? Det.name.split(".").pop() : ""}</span>
-                                <span className='text-black font-semibold'>{formatFileSize(Det.sizeOriginal)}</span>
-                                <span className='text-black font-semibold'>{formatDate(Det.$updatedAt)}</span>
+                                <span className='text-black font-semibold'>{formatFileSize(Det.size)}</span>
+                                <span className='text-black font-semibold'>{formatDate(Det.updatedAt)}</span>
+                                <span className='text-black font-semibold'>{owner}</span>
                             </span>
 
 
@@ -1926,39 +1881,7 @@ const User = () => {
                     </button>
                 </DialogContent>
             </Dialog>
-            <Dialog open={upload} onopenchange={setupload}>
-                <DialogContent className="w-full sm:w-80 rounded-3xl fixed  sm:left-[75%] lg:left-[85%] top-[88%] overflow-hidden" >
-                    <DialogHeader className="w-full ">
-                        <DialogTitle className="text-base font-semibold top-0">Uploading...</DialogTitle>
-                        <span style={{ width: `${uploadingdetails.progress}%` }} className='h-0.5 bg-[#ea6365] absolute bottom-0.5 left-0'></span>
-                    </DialogHeader>
-                    <DialogDescription className="top-0">
-                    </DialogDescription>
-                    <button className='absolute top-3  right-3 bg-white p-1 rounded-2xl z-40 pointer-events-none '>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={15}
-                            height={15}
-                            fill="none"
-                            className="injected-svg"
-                            color="white"
-                            data-src="https://cdn.hugeicons.com/icons/multiplication-sign-solid-rounded.svg"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                fill="white"
-                                fillRule="evenodd"
-                                d="M5.116 5.116a1.25 1.25 0 0 1 1.768 0L12 10.232l5.116-5.116a1.25 1.25 0 0 1 1.768 1.768L13.768 12l5.116 5.116a1.25 1.25 0 0 1-1.768 1.768L12 13.768l-5.116 5.116a1.25 1.25 0 0 1-1.768-1.768L10.232 12 5.116 6.884a1.25 1.25 0 0 1 0-1.768Z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </button>
-                    <div className='text-center sm:text-left'>
-
-                        {uploadingdetails.sizeUploaded ? formatFileSize(uploadingdetails.sizeUploaded) : "0B"} of {file?.size ? formatFileSize(file?.size) : "0B"}
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <UploadDialog open={upload} onOpenChange={setupload} />
             <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -2005,11 +1928,11 @@ const User = () => {
                             </span>
                             <span className='flex flex-col gap-2'>
                                 <span className='font-semibold text-black'>{sharedet.name}</span>
-                                <span>{formatDate(sharedet.$updatedAt)} </span>
+                                <span>{formatDate(sharedet.updatedAt)} </span>
                             </span>
                         </span>
                         <span className='flex  items-center justify-center gap-2'>
-                            <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet.$id} type="text" readOnly />
+                            <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet._id} type="text" readOnly />
                             <Button onClick={() => {
                                 navigator.clipboard.writeText(document.querySelector(".input-share").value)
                                 toast("Copied to clipboard")

@@ -1,33 +1,24 @@
-import { Client, Storage } from 'appwrite';
 import { DownloadIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 const Slug = async ({ params }) => {
     const { slug } = await params;
     let filefound = false
     let downloadUrl = ""
     let file = ""
-    const client = new Client()
-        .setEndpoint('https://cloud.appwrite.io/v1')
-        .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-
-    const storage = new Storage(client);
     try {
-        file = await storage.getFile(
-            process.env.NEXT_PUBLIC_BUCKET_ID,
-            slug
-        );
-        downloadUrl = storage.getFileDownload(
-            process.env.NEXT_PUBLIC_BUCKET_ID,
-            slug
-        )
-        filefound = true
-
+        file = await fetch(`/api/files/share/${slug}`)
+        const response = await file.json()
+        if (!file.ok) {
+            filefound = false;
+        } else {
+            filefound = true;
+            file = response;
+            downloadUrl = response.url;
+        }
     }
     catch (e) {
-
     }
     function formatDate(isoString) {
         const date = new Date(isoString);
@@ -41,19 +32,15 @@ const Slug = async ({ params }) => {
                     <Image priority height={100} width={100} className='w-30 md:w-42 cursor-pointer ' src="/User.png" alt="" />
                 </Link>
                 <div className='flex items-center gap-5'>
-
                     <Link prefetch={true} href="/login" className="bg-[#fa7275] px-7 py-4 rounded-full text-white text-base">
-
                         Login</Link>
                 </div>
-
             </div>
             {
                 filefound &&
                 <div className="flex flex-col items-center gap-11 relative top-40 min-h-screen ">
                     <span className='flex items-center border-1 px-4 py-3 gap-5 rounded-2xl w-[90%] sm:w-1/2 '>
                         <span className="w-10 object-contain rounded-4xl">
-
                             <FileIcon
                                 extension={file.name ? file.name.split(".").pop() : "txt"}
                                 {...defaultStyles[file.name ? file.name.split(".").pop() : "txt"]}
@@ -66,12 +53,11 @@ const Slug = async ({ params }) => {
                                 labelColor="#EF4444"
                                 labelTextColor="#FFFFFF"
                                 radius={8}
-
                             />
                         </span>
                         <span className='flex flex-col gap-2'>
                             <span className='font-semibold text-black'>{file.name}</span>
-                            <span>{formatDate(file.$updatedAt)} </span>
+                            <span>{formatDate(file.updatedAt)} </span>
                         </span>
                     </span>
                     <a

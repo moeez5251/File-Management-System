@@ -1,9 +1,8 @@
 "use client"
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState, } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
-import { Client, Storage } from 'appwrite';
 import { FileIcon, defaultStyles } from 'react-file-icon';
 import {
   Dialog,
@@ -12,9 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose
 } from "@/components/ui/dialog"
+import { Input } from '@/components/ui/input';
 import { toast } from "sonner"
 import { Toaster } from "@/components/ui/sonner"
+import { io } from "socket.io-client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,17 +26,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import Image from 'next/image';
-import { Input } from '@/components/ui/input';
-import { Copy } from 'lucide-react';
-const User = () => {
+import { Copy } from "lucide-react"
+const Home = () => {
   const router = useRouter();
-  const client = new Client().setEndpoint('https://cloud.appwrite.io/v1')
-    .setProject(process.env.NEXT_PUBLIC_PROJECT_ID);
-  const storage = new Storage(client);
-  const [files, setfiles] = useState([])
+  const [files, setFiles] = useState([])
   const [docfiles, setdocfiles] = useState([])
   const [share, setShare] = useState(false)
   const [sharedet, setSharedet] = useState("")
+  const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL);
   const [docfilesize, setdocfilesize] = useState({
     size: "",
     lastupdated: ""
@@ -56,9 +55,7 @@ const User = () => {
     size: "0 B",
     lastupdated: ""
   })
-  const handleclick = () => {
-    router.push("/login");
-  }
+
   function formatDate(isoString) {
     const date = new Date(isoString);
     const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
@@ -78,106 +75,149 @@ const User = () => {
 
   const handlefilegetting = async () => {
     try {
-      const response = await storage.listFiles(
-        process.env.NEXT_PUBLIC_BUCKET_ID // Bucket ID
-      );
-      setfiles(response.files)
+      const response = await fetch("/api/files/all", {
+        credentials: "include"
+      })
+      const data = await response.json()
+      const userFiles = data;
+      setFiles(userFiles)
       const documentMimeTypes = [
-        "application/pdf", // PDF
-        "application/msword", // Word (.doc)
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (.docx)
-        "application/vnd.ms-excel", // Excel (.xls)
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel (.xlsx)
-        "application/vnd.ms-powerpoint", // PowerPoint (.ppt)
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (.pptx)
-        "text/plain", // Plain text (.txt)
-        "application/rtf", // Rich Text Format (.rtf)
-        "application/vnd.oasis.opendocument.text", // OpenDocument Text (.odt)
-        "application/vnd.oasis.opendocument.spreadsheet" // OpenDocument Spreadsheet (.ods)
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "text/plain",
+        "application/rtf",
+        "application/vnd.oasis.opendocument.text",
+        "application/vnd.oasis.opendocument.spreadsheet"
       ];
-      const filteredfiles = response.files.filter(file => documentMimeTypes.includes(file.mimeType))
-      setdocfiles(
-        filteredfiles)
+
       const imageMimeTypes = [
-        "image/jpeg", // JPEG (.jpg, .jpeg)
-        "image/png", // PNG (.png)
-        "image/gif", // GIF (.gif)
-        "image/bmp", // Bitmap (.bmp)
-        "image/webp", // WebP (.webp)
-        "image/tiff", // TIFF (.tiff)
-        "image/svg+xml", // SVG (.svg)
-        "image/vnd.adobe.photoshop", // Photoshop (.psd)
-        "image/x-icon", // Icon (.ico)
-        "image/heif", // HEIF (.heif)
-        "image/heic", // HEIC (.heic)
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/webp",
+        "image/tiff",
+        "image/svg+xml",
+        "image/vnd.adobe.photoshop",
+        "image/x-icon",
+        "image/heif",
+        "image/heic",
       ];
-      const filteredimagefiles = response.files.filter(file => imageMimeTypes.includes(file.mimeType))
-      setimagefiles(
-        filteredimagefiles)
+
       const mediaMimeTypes = [
-        "audio/mpeg", // MP3 (.mp3)
-        "audio/wav", // WAV (.wav)
-        "audio/ogg", // OGG (.ogg)
-        "audio/flac", // FLAC (.flac)
-        "audio/aac", // AAC (.aac)
-        "audio/webm", // WebM (.webm)
-        "video/mp4", // MP4 (.mp4)
-        "video/webm", // WebM (.webm)
-        "video/ogg", // OGG (.ogv)
-        "video/x-msvideo", // AVI (.avi)
-        "video/quicktime", // MOV (.mov)
-        "video/x-matroska", // MKV (.mkv)
-        "video/3gpp", // 3GP (.3gp)
-        "video/flv", // FLV (.flv)
+        "audio/mpeg",
+        "audio/wav",
+        "audio/ogg",
+        "audio/flac",
+        "audio/aac",
+        "audio/webm",
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "video/x-msvideo",
+        "video/quicktime",
+        "video/x-matroska",
+        "video/3gpp",
+        "video/flv",
       ];
-      const filteredmediafiles = response.files.filter(file => mediaMimeTypes.includes(file.mimeType))
+
+      setdocfiles(
+        userFiles.filter(file => documentMimeTypes.includes(file.mimetype))
+      );
+
+      setimagefiles(
+        userFiles.filter(file => imageMimeTypes.includes(file.mimetype))
+      );
+
       setmediafiles(
-        filteredmediafiles)
-      const otherFiles = response.files.filter(file => {
-        return !documentMimeTypes.includes(file.mimeType) &&
-          !imageMimeTypes.includes(file.mimeType) &&
-          !mediaMimeTypes.includes(file.mimeType);
-      });
-      setOther(otherFiles);
+        userFiles.filter(file => mediaMimeTypes.includes(file.mimetype))
+      );
+
+      setOther(
+        userFiles.filter(
+          file =>
+            !documentMimeTypes.includes(file.mimetype) &&
+            !imageMimeTypes.includes(file.mimetype) &&
+            !mediaMimeTypes.includes(file.mimetype)
+        )
+      );
 
     } catch (error) {
-      toast("Failed to get files")
+      toast("Failed to get files");
     }
-  }
+  };
+ useEffect(() => {
+    socket.on("filesUpdated", (data) => {
+
+     handlefilegetting()
+    });
+
+    return () => {
+      socket.off("filesUpdated");
+    };
+  }, []);
+
+
   useEffect(() => {
-    if (docfiles.length === 0 && imagefiles.length === 0 && mediafiles.length === 0 && other.length === 0) {
-      handlefilegetting()
-    }
     if (docfiles.length > 0) {
-      const totalsize = docfiles.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = docfiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = docfiles.reduce((total, file) => total + file.size, 0);
+      const lastupdated = docfiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setdocfilesize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
       })
     }
+    else {
+      setdocfilesize({
+        size: "0 KB",
+        lastupdated: "-"
+      })
+    }
     if (imagefiles.length > 0) {
-      const totalsize = imagefiles.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = imagefiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = imagefiles.reduce((total, file) => total + file.size, 0);
+      const lastupdated = imagefiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setimgsize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
       })
     }
+    else {
+      setimgsize({
+        size: "0 KB",
+        lastupdated: "-"
+      })
+    }
     if (mediafiles.length > 0) {
-      const totalsize = mediafiles.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = mediafiles.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = mediafiles.reduce((total, file) => total + file.size, 0);
+      const lastupdated = mediafiles.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setMediasize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
       })
     }
+    else {
+      setMediasize({
+        size: "0 KB",
+        lastupdated: "-"
+      })
+    }
     if (other.length > 0) {
-      const totalsize = other.reduce((total, file) => total + file.sizeOriginal, 0);
-      const lastupdated = other.reduce((last, file) => new Date(file.$updatedAt) > last ? new Date(file.$updatedAt) : last, new Date(0));
+      const totalsize = other.reduce((total, file) => total + file.size, 0);
+      const lastupdated = other.reduce((last, file) => new Date(file.updatedAt) > last ? new Date(file.updatedAt) : last, new Date(0));
       setothersize({
         size: formatFileSize(totalsize),
         lastupdated: formatDate(lastupdated)
+      })
+    }
+    else {
+      setothersize({
+        size: "0 KB",
+        lastupdated: "-"
       })
     }
     return () => {
@@ -185,31 +225,22 @@ const User = () => {
     }
     // Disable the exhaustive-deps warning
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docfiles, imagefiles, mediafiles, other])
-  useEffect(() => {
-    const unsubscribe = client.subscribe("files", (e) => {
-      handlefilegetting();
-    });
-
-    return () => {
-      unsubscribe();
-    };
-    // Disable the exhaustive-deps warning
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    router.prefetch("/login")
-  
-    return () => {
-      
-    }
-  }, [router])
-  
+  }, [files])
   const handlesidebar = () => {
-
     document.querySelector(".sidebar").classList.toggle("left-0");
   }
+
+
+  useEffect(() => {
+    router.prefetch("/")
+    handlefilegetting()
+    return () => {
+
+    }
+  }, [router])
+
+
+
 
 
   return (
@@ -219,16 +250,19 @@ const User = () => {
         <Image priority height={100} width={100} className='w-30 md:w-42 ' src="/User.png" alt="" />
         <div className='flex items-center gap-5'>
 
-          <Button onClick={handleclick} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
+          <Button onClick={() => router.push("/login")} className="flex items-center bg-[#fa7275] px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base rounded-full shadow-xl hover:bg-[#fa7290]">
 
-            Login</Button>
+            Sign In</Button>
+          <Button onClick={() => router.push("/signup")} className="flex items-center bg-white text-black px-6 md:px-10 py-6 md:py-7 cursor-pointer text-base hover:bg-white border border-white hover:border-black ">
+
+            Sign Up</Button>
         </div>
       </div>
       <Tabs defaultValue="dashboard" className="h-full w-[94%] relative top-4  mt-6 lg:mx-6  lg:flex lg:items-start block mx-auto flex-row ">
         <div className='sidebar w-[25%] absolute -left-full z-50 transition-all lg:relative lg:left-0'>
-          <TabsList className="flex flex-col gap-2 h-fit bg-white py-3 lg:bg-transparent">
+          <TabsList className="flex flex-col gap-2 h-fit bg-white p-3 lg:bg-transparent">
 
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-2xl cursor-pointer" value="dashboard" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -248,7 +282,7 @@ const User = () => {
                 />
               </svg>  Dashboard
             </TabsTrigger>
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none  h-full outline-none px-12 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="documents" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -289,7 +323,7 @@ const User = () => {
                 />
               </svg> Documents
             </TabsTrigger>
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Images" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -328,7 +362,7 @@ const User = () => {
                 />
               </svg>  Images
             </TabsTrigger>
-            <TabsTrigger onClick={handlefilegetting}
+            <TabsTrigger
               className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Media" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -361,7 +395,7 @@ const User = () => {
               </svg>Media
             </TabsTrigger>
             <TabsTrigger
-              className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" onClick={handlefilegetting} value="Other" >
+              className="bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none w-full h-full outline-none px-8 text-base py-5 rounded-full data-[state=active]=shadow-lg  cursor-pointer" value="Other" >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={20}
@@ -399,7 +433,7 @@ const User = () => {
         </div>
         <div className='relative lg:w-full bg-[#f1f3f8] h-full rounded-4xl overflow-y-auto '>
           <TabsContent className="flex p-5 md:p-8 gap-6 md:gap-10 items-center flex-col justify-center" value="dashboard">
-
+          
             <div className='grid grid-cols-1 justify-items-center md:grid-cols-2 gap-10'>
               <div className='bg-white w-76 md:w-60 h-60 p-10 relative rounded-3xl'>
                 <Image priority width={100} height={100} className='absolute top-0 left-0 w-20' src="/Docs.png" alt="Docs Logo" />
@@ -440,7 +474,7 @@ const User = () => {
               <div className='flex  items-center gap-2 md:gap-0 justify-between'>
                 <h1 className='font-bold text-2xl md:text-4xl text-[#333f4e]'>Documents</h1>
                 <div className='block'>
-                  <TabsList className="sm:flex hidden gap-5 bg-transparent" >
+                  <TabsList className="sm:flex gap-5 bg-transparent hidden" >
 
                     <TabsTrigger value="grid" className='bg-white data-[state=active]:bg-[#fa7275] data-[state=active]:drop-shadow-lg data-[state=active]:text-white border-none outline-none rounded-lg data-[state=active]=shadow-2xl cursor-pointer px-3 py-5 '>
 
@@ -555,27 +589,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -631,7 +660,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -654,26 +682,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -740,12 +764,9 @@ const User = () => {
                     <div key={key} className='bg-white h-56 px-5 py-6 rounded-3xl'>
                       <div className='flex items-stretch justify-between'>
 
-
                         <div className="logo w-16 h-16 object-contain">
-                          <Image priority
-                            width={100}
-                            height={100}
-                            src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
+                          <Image priority width={100} height={100}
+                            src={e.url}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
                           />
@@ -797,26 +818,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -832,10 +849,8 @@ const User = () => {
 
 
                         <div className="logo w-14 h-14 object-contain">
-                          <Image priority
-                            src={storage.getFileView(process.env.NEXT_PUBLIC_BUCKET_ID, e.$id)}
-                            width={100}
-                            height={100}
+                          <Image priority width={100} height={100}
+                            src={e.url}
                             alt="File Preview"
                             className="w-full h-full rounded-full"
                           />
@@ -887,26 +902,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1014,7 +1025,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1037,27 +1047,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1135,26 +1140,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1263,7 +1264,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1286,27 +1286,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1362,7 +1357,6 @@ const User = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="px-5 py-3 rounded-xl shadow-xl w-80">
                               <DropdownMenuLabel className="text-lg font-semibold my-1">{e.name}</DropdownMenuLabel>
-
                               <DropdownMenuItem onClick={
                                 () => {
                                   setDet(e)
@@ -1385,27 +1379,22 @@ const User = () => {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={
                                 () => {
-                                  const result = storage.getFileDownload(
-                                    process.env.NEXT_PUBLIC_BUCKET_ID,
-                                    e.$id
-                                  )
-                                  window.location.href = result
+                                  window.location.href = e.url
                                 }
-                              } data-id={e.$id} className="py-2">
+                              } data-id={e._id} className="py-2">
                                 <Image priority width={30} height={30} src="/Drop-Down/Download.png" alt="Download" />
                                 Download
                               </DropdownMenuItem>
-
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <span>{formatFileSize(e.sizeOriginal)}</span>
+                          <span>{formatFileSize(e.size)}</span>
                         </div>
                       </div>
                       <div
                         className='font-semibold mt-4'>
                         {e.name}
                       </div>
-                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.$createdAt)}</div>
+                      <div className='text-gray-400 text-sm mt-2.5'>{formatDate(e.createdAt)}</div>
                     </div>
                   )
 
@@ -1417,6 +1406,11 @@ const User = () => {
           </TabsContent>
         </div>
       </Tabs>
+
+
+
+
+
       <Dialog open={Details} onopenchange={setDetails}>
         <DialogContent className="w-full lg:w-1/4 rounded-3xl " >
           <DialogHeader className="w-full">
@@ -1444,7 +1438,7 @@ const User = () => {
               </span>
               <span className='flex flex-col gap-2'>
                 <span className='font-semibold text-black'>{Det.name}</span>
-                <span>{formatDate(Det.$updatedAt)} </span>
+                <span>{formatDate(Det.updatedAt)} </span>
               </span>
             </span>
             <span className='flex flex-row  gap-10 my-5'>
@@ -1452,11 +1446,13 @@ const User = () => {
                 <span>Format:</span>
                 <span>Dimension:</span>
                 <span>Last modified:</span>
+                <span>Uploaded By</span>
               </span>
               <span className='flex gap-3 flex-col'>
                 <span className='text-black font-semibold'>{Det.name ? Det.name.split(".").pop() : ""}</span>
-                <span className='text-black font-semibold'>{formatFileSize(Det.sizeOriginal)}</span>
-                <span className='text-black font-semibold'>{formatDate(Det.$updatedAt)}</span>
+                <span className='text-black font-semibold'>{formatFileSize(Det.size)}</span>
+                <span className='text-black font-semibold'>{formatDate(Det.updatedAt)}</span>
+                <span className='text-black font-semibold'>{Det.owner?.name}</span>
               </span>
 
 
@@ -1483,7 +1479,6 @@ const User = () => {
           </button>
         </DialogContent>
       </Dialog>
-
       <div onClick={handlesidebar} className='bg-[#fa7275] block lg:hidden w-fit fixed bottom-5 left-4 z-100 rounded-md p-3'>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -1530,11 +1525,11 @@ const User = () => {
               </span>
               <span className='flex flex-col gap-2'>
                 <span className='font-semibold text-black'>{sharedet.name}</span>
-                <span>{formatDate(sharedet.$updatedAt)} </span>
+                <span>{formatDate(sharedet.updatedAt)} </span>
               </span>
             </span>
             <span className='flex  items-center justify-center gap-2'>
-              <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet.$id} type="text" readOnly />
+              <Input className="text-black input-share" value={"https://xfms.netlify.app/share/" + sharedet._id} type="text" readOnly />
               <Button onClick={() => {
                 navigator.clipboard.writeText(document.querySelector(".input-share").value)
                 toast("Copied to clipboard")
@@ -1566,7 +1561,8 @@ const User = () => {
       </Dialog>
     </div>
 
+
   )
 }
 
-export default User
+export default Home
