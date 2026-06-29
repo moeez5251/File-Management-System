@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/user.png" alt="Store It Logo" width="120" />
+  <img src="assets/user.png" alt="Store It Logo" width="180" />
 </p>
 
 # Store It — File Management System
