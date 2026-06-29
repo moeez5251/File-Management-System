@@ -76,7 +76,7 @@ const User = () => {
         setfile(e.target.files[0])
     }
     const handlelogout = async () => {
-        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/logout`, {
+        await fetch("/api/user/logout", {
             credentials: "include"
         })
         router.replace("/login");
@@ -101,7 +101,7 @@ const User = () => {
     const handlefilegetting = async () => {
         console.log("test")
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files/byid`, {
+            const response = await fetch("/api/files/byid", {
                 credentials: "include"
             })
             const data = await response.json()
@@ -186,7 +186,7 @@ const User = () => {
         }
         const renameid = sessionStorage.getItem("renameid")
         if (renameid) {
-            await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files/rename/${renameid}`, {
+            await fetch(`/api/files/rename/${renameid}`, {
                 method: "PUT",
                 credentials: "include",
                 headers: {
@@ -204,7 +204,7 @@ const User = () => {
     }
     const handledeletefile = async () => {
         const fileid = sessionStorage.getItem("moveid")
-        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files/delete/${fileid}`,
+        await fetch(`/api/files/delete/${fileid}`,
             {
                 method: "DELETE",
                 credentials: "include",
@@ -220,7 +220,7 @@ const User = () => {
             setopening(false)
             const formData = new FormData()
             formData.append("file", file)
-            fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/upload/file`,
+            fetch("/api/upload/file",
                 {
                     method: "POST",
                     credentials: "include",

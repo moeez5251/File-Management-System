@@ -8,6 +8,14 @@ const nextConfig = {
       },
     ],
   },
+    async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://file-management-system-ov73.onrender.com/api/:path*'
+      }
+    ];
+  }
 };
 
 export default nextConfig;

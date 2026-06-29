@@ -75,7 +75,7 @@ const Home = () => {
 
   const handlefilegetting = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files/all`, {
+      const response = await fetch("/api/files/all", {
         credentials: "include"
       })
       const data = await response.json()

@@ -46,7 +46,7 @@ const SignUp = () => {
         setTruestate(true)
         try {
 
-            const api = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/createuser`, {
+            const api = await fetch("/api/user/createuser", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
