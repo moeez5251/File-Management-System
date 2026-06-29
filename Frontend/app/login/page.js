@@ -48,7 +48,6 @@ const Login = () => {
             }
              window.location.href = "/user";
         } catch (err) {
-            console.log(err)
             toast.error("Something went wrong")
             setTruestate(false)
 
