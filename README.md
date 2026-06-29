@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="./Frontend/public/user.png" alt="Store It Logo" width="120" />
+  <img src="assets/user.png" alt="Store It Logo" width="120" />
 </p>
 
-# 🗄️ Store It — File Management System
+# Store It — File Management System
 
 A full-stack cloud file management web application that lets users securely upload, organize, preview, share, and delete files. Built with Next.js on the frontend and Express.js on the backend, with Cloudinary as the cloud storage layer and real-time updates powered by Socket.IO.
 
