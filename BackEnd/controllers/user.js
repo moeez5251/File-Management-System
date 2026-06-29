@@ -9,7 +9,7 @@ export const createUser = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    const existingemail =await User.findOne({ email });
+    const existingemail = await User.findOne({ email });
     if (existingemail) {
       return res.status(400).json({ error: "User already exists with this email" });
     }
@@ -52,21 +52,31 @@ export const loginUser = async (req, res) => {
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    
+
     res.json({ accessToken, refreshToken, user });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-export const logout=async (req, res)=>{
-    try {
-        const user = await User.findById(req.user.id);
-        user.refreshToken = null;
-        await user.save();
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
-        res.json({ message: "User logged out successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+export const logout = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.refreshToken = null;
+    await user.save();
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+      path: "/",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+      path: "/",
+    });
+    res.json({ message: "User logged out successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
