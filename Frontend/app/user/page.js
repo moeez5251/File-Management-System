@@ -106,7 +106,6 @@ const User = () => {
     }
 
     const handlefilegetting = async () => {
-        console.log("test")
         try {
             const response = await fetch("/api/files/byid", {
                 credentials: "include"

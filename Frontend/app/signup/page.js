@@ -68,7 +68,6 @@ const SignUp = () => {
             })
             
         } catch (err) {
-            console.log(err)
             toast.error("Something went wrong")
             setTruestate(false)
 

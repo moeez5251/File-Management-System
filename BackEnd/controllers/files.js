@@ -35,7 +35,6 @@ export const deletefile = async (req, res) => {
     try {
         const file = await File.findById(req.params.id);
         const result = await cloudinary.uploader.destroy(file.public_id, { resource_type: file.resource_type });
-        console.log(result)
 
         await File.deleteOne({ _id: req.params.id });
         res.status(200).json({ message: "File deleted successfully" });
