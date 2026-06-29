@@ -76,10 +76,17 @@ const User = () => {
         setfile(e.target.files[0])
     }
     const handlelogout = async () => {
-        await fetch("/api/user/logout", {
+        const logout = await fetch("/api/user/logout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
             credentials: "include"
         })
-         window.location.href = "/login";
+        if (!logout.ok) {
+            return
+        }
+        window.location.href = "/login";
     }
     function formatDate(isoString) {
         const date = new Date(isoString);
