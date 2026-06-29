@@ -32,7 +32,7 @@ const Login = () => {
         setTruestate(true)
         try {
 
-            const api = await fetch("http://localhost:8000/api/user/login", {
+            const api = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
