@@ -8,7 +8,7 @@ const Slug = async ({ params }) => {
     let downloadUrl = ""
     let file = ""
     try {
-        file = await fetch(`/api/files/share/${slug}`)
+        file = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/files/share/${slug}`)
         const response = await file.json()
         if (!file.ok) {
             filefound = false;
@@ -19,6 +19,7 @@ const Slug = async ({ params }) => {
         }
     }
     catch (e) {
+        console.log(e)
     }
     function formatDate(isoString) {
         const date = new Date(isoString);
